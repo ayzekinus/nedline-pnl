@@ -1,0 +1,1102 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Şoför Portalı - Prototip</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#101a33;
+      --card2:#0f1730;
+      --text:#e8eefc;
+      --muted:#a9b6d8;
+      --line:#23345f;
+      --accent:#4ea1ff;
+      --ok:#2ecc71;
+      --warn:#ff9f43;
+      --danger:#ff5b5b;
+      --btn:#1b2a52;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 800px at 15% 10%, #14214a 0%, var(--bg) 55%, #070b15 100%);
+      color:var(--text);
+    }
+    .app{
+      max-width: 980px;
+      margin: 24px auto;
+      padding: 16px;
+    }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 14px 16px;
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border-radius: 14px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.25);
+    }
+    header .brand{
+      display:flex; align-items:center; gap:10px;
+    }
+    .badge{
+      font-size:12px;
+      padding: 4px 8px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      color:var(--muted);
+      background: rgba(255,255,255,.03);
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+    @media (max-width: 860px){
+      .grid{grid-template-columns:1fr}
+    }
+    .card{
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.25);
+    }
+    h1,h2,h3{margin:0 0 10px 0}
+    h1{font-size:18px}
+    h2{font-size:16px; color:var(--text)}
+    h3{font-size:14px; color:var(--muted); font-weight:600}
+    .muted{color:var(--muted)}
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .row > *{flex:1}
+    label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
+    input, select, textarea{
+      width:100%;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background: rgba(10,15,25,.6);
+      color:var(--text);
+      outline:none;
+    }
+    textarea{min-height:96px; resize:vertical}
+    input[type="file"]{padding:8px}
+    .btnbar{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    button{
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(78,161,255,.28), rgba(27,42,82,.3));
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:600;
+    }
+    button.secondary{
+      background: rgba(255,255,255,.03);
+    }
+    button.danger{
+      background: linear-gradient(180deg, rgba(255,91,91,.28), rgba(27,42,82,.2));
+      border-color: rgba(255,91,91,.35);
+    }
+    button.ok{
+      background: linear-gradient(180deg, rgba(46,204,113,.28), rgba(27,42,82,.2));
+      border-color: rgba(46,204,113,.35);
+    }
+    button:disabled{
+      opacity:.45; cursor:not-allowed;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      font-size:12px;
+      color:var(--muted);
+    }
+    .dot{width:10px; height:10px; border-radius:999px; background: var(--muted)}
+    .dot.ok{background: var(--ok)}
+    .dot.warn{background: var(--warn)}
+    .dot.danger{background: var(--danger)}
+    .list{
+      display:flex; flex-direction:column; gap:10px;
+      margin-top:10px;
+    }
+    .item{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: 12px;
+      padding: 10px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .item .meta{display:flex; flex-direction:column; gap:2px}
+    .item .title{font-weight:700}
+    .item .sub{font-size:12px; color:var(--muted)}
+    .item .right{display:flex; flex-direction:column; gap:8px; align-items:flex-end}
+    .sep{height:1px; background: var(--line); margin: 12px 0}
+    .kpi{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:10px;
+    }
+    .kpi .k{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .k .v{font-size:18px; font-weight:800}
+    .k .l{font-size:12px; color:var(--muted)}
+    .hidden{display:none !important}
+    .notice{
+      border:1px dashed rgba(78,161,255,.5);
+      background: rgba(78,161,255,.08);
+      padding:10px;
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .timeline{
+      display:flex; flex-direction:column; gap:8px;
+      max-height: 280px;
+      overflow:auto;
+      padding-right:6px;
+    }
+    .ev{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .ev b{color:var(--text)}
+    .footer{
+      margin-top: 12px;
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div style="width:36px;height:36px;border-radius:12px;background:rgba(78,161,255,.25);border:1px solid var(--line);display:grid;place-items:center;font-weight:900;">NL</div>
+        <div>
+          <div style="font-weight:800;">Şoför Portalı (Prototip)</div>
+          <div class="muted" style="font-size:12px;">Rota, durum, fotoğraf, belge ve günlük rapor akışı</div>
+        </div>
+      </div>
+      <div class="row" style="flex:0; align-items:center;">
+        <span class="badge" id="sessionBadge">Oturum: Kapalı</span>
+        <button class="secondary hidden" id="logoutBtn" type="button">Çıkış</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: Main flow -->
+      <section class="card" id="mainCard">
+        <!-- LOGIN -->
+        <div id="screenLogin">
+          <h1>Giriş</h1>
+          <div class="notice">
+            Demo kullanıcı: <span class="mono">demo</span> / Şifre: <span class="mono">1234</span>
+          </div>
+          <div class="sep"></div>
+          <div class="row">
+            <div>
+              <label>Kullanıcı Adı</label>
+              <input id="inpUser" placeholder="Kullanıcı adı" autocomplete="username" />
+            </div>
+            <div>
+              <label>Şifre</label>
+              <input id="inpPass" type="password" placeholder="Şifre" autocomplete="current-password" />
+            </div>
+          </div>
+          <div class="btnbar">
+            <button id="btnLogin" type="button">Giriş Yap</button>
+          </div>
+          <div class="muted" id="loginErr" style="margin-top:10px;"></div>
+        </div>
+
+        <!-- VEHICLE CHECK START -->
+        <div id="screenVehicle" class="hidden">
+          <h1>İşe Başlama: Araç Kontrolü</h1>
+          <div class="row" style="align-items:flex-end;">
+            <div>
+              <label>Tanimli Araç</label>
+              <select id="selVehicle"></select>
+              <div class="muted" style="font-size:12px;margin-top:6px;">
+                Araç tanımlı değilse “Araç Yok / Manuel” seçin.
+              </div>
+            </div>
+            <div>
+              <label>Manuel Araç Numarası (opsiyonel)</label>
+              <input id="inpManualVehicle" placeholder="Örn: 34 ABC 123" />
+            </div>
+          </div>
+
+          <div class="sep"></div>
+
+          <h2>Hasar Durumu</h2>
+          <div class="row">
+            <div class="pill"><span class="dot" id="dotDamageStart"></span> <span id="txtDamageStart">Seçilmedi</span></div>
+            <div class="pill"><span class="dot" id="dotPhotosStart"></span> <span id="txtPhotosStart">Fotoğraf yok</span></div>
+          </div>
+
+          <div class="btnbar">
+            <button class="ok" id="btnNoDamageStart" type="button">Hasarsız</button>
+            <button class="danger" id="btnDamageStart" type="button">Hasar Var</button>
+          </div>
+
+          <div class="sep"></div>
+
+          <div id="startPhotoBox" class="hidden">
+            <label>Hasar Fotoğrafı Yükle (1+)</label>
+            <input id="fileStartDamage" type="file" accept="image/*" multiple />
+            <div class="muted" id="startPhotoList" style="margin-top:8px;"></div>
+          </div>
+
+          <div class="btnbar">
+            <button id="btnVehicleContinue" type="button" disabled>Devam Et</button>
+          </div>
+        </div>
+
+        <!-- ROUTES LIST -->
+        <div id="screenRoutes" class="hidden">
+          <h1>Rotarım</h1>
+          <div class="row" style="align-items:center; justify-content:space-between;">
+            <span class="pill"><span class="dot ok"></span> Bugünkü turlarınız listelendi</span>
+            <span class="pill">Araç: <b id="txtVehicleChosen" style="color:var(--text)"></b></span>
+          </div>
+          <div class="list" id="routesList"></div>
+          <div class="sep"></div>
+          <div class="btnbar">
+            <button class="secondary" id="btnToVehicle" type="button">Araç Kontrolüne Dön</button>
+          </div>
+        </div>
+
+        <!-- TOUR IN PROGRESS -->
+        <div id="screenTour" class="hidden">
+          <h1>Durum Bildirimi</h1>
+          <div class="row" style="align-items:center; justify-content:space-between;">
+            <span class="pill"><span class="dot ok"></span> Aktif Tur</span>
+            <span class="pill">Tur: <b id="txtActiveTour" style="color:var(--text)"></b></span>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="row">
+            <div>
+              <h2>Durum Seç</h2>
+              <div class="btnbar">
+                <button class="secondary" data-status="TRAFIK_BEKLEME">Trafikte Bekleme</button>
+                <button class="secondary" data-status="YUKLEME_BEKLEME">Yüklemede Bekleme</button>
+                <button class="secondary" data-status="TESLIMAT_BEKLEME">Teslimatta Bekleme</button>
+                <button class="secondary" data-status="YUKLEME_YAPILIYOR">Yükleme Yapılıyor</button>
+                <button class="secondary" data-status="TESLIMAT_YAPILIYOR">Teslimat Yapılıyor</button>
+                <button class="secondary" data-status="DINLENME">Dinlenme</button>
+                <button class="ok" data-status="TUR_TAMAMLANDI">Tur Tamamlandı</button>
+              </div>
+              <div class="muted" style="font-size:12px;margin-top:10px;">
+                Her seçiminiz tur zaman çizelgesine işlenir. Süreler ardışık durum geçişlerinden hesaplanır.
+              </div>
+            </div>
+            <div>
+              <h2>Tur Zaman Çizelgesi</h2>
+              <div class="timeline" id="timelineBox"></div>
+            </div>
+          </div>
+
+          <div class="sep"></div>
+
+          <div id="podBox" class="hidden">
+            <h2>Teslimat Belgesi (POD) Yükle</h2>
+            <label>Belge / Fotoğraf</label>
+            <input id="filePOD" type="file" accept="image/*,application/pdf" />
+            <div class="muted" id="podInfo" style="margin-top:8px;"></div>
+
+            <div class="btnbar">
+              <button id="btnSendCustomerMail" type="button">Müşteriye Bilgi Maili Oluştur</button>
+            </div>
+
+            <div class="notice hidden" id="mailPreview"></div>
+
+            <div class="btnbar">
+              <button id="btnBackToRoutes" class="secondary" type="button">Tur Listesine Dön</button>
+            </div>
+          </div>
+
+          <div class="btnbar">
+            <button class="danger" id="btnForceEndTour" type="button">Turü Bitir (Zorla)</button>
+          </div>
+        </div>
+
+        <!-- END OF DAY -->
+        <div id="screenEOD" class="hidden">
+          <h1>Gün Sonu: Araç Kontrolü ve İş Bitişi</h1>
+
+          <div class="row" style="align-items:center;">
+            <span class="pill">Araç: <b id="txtEodVehicle" style="color:var(--text)"></b></span>
+            <span class="pill"><span class="dot" id="dotEodDamage"></span> <span id="txtEodDamage">Seçilmedi</span></span>
+            <span class="pill"><span class="dot" id="dotEodPhotos"></span> <span id="txtEodPhotos">Fotoğraf yok</span></span>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="btnbar">
+            <button class="ok" id="btnNoDamageEod" type="button">Hasarsız</button>
+            <button class="danger" id="btnDamageEod" type="button">Hasar Var</button>
+          </div>
+
+          <div id="eodPhotoBox" class="hidden" style="margin-top:10px;">
+            <label>Gün Sonu Fotoğraflarını Yükle (1+)</label>
+            <input id="fileEod" type="file" accept="image/*" multiple />
+            <div class="muted" id="eodPhotoList" style="margin-top:8px;"></div>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="btnbar">
+            <button id="btnFinishDay" type="button" disabled>İş Bitir</button>
+            <button id="btnViewReport" class="secondary" type="button">Günlük Raporu Gör</button>
+          </div>
+
+          <div class="muted" id="finishInfo" style="margin-top:10px;"></div>
+        </div>
+
+        <!-- REPORT -->
+        <div id="screenReport" class="hidden">
+          <h1>Günlük Rapor</h1>
+          <div class="row" style="align-items:center;">
+            <span class="pill">Sürücü: <b id="txtDriverName" style="color:var(--text)"></b></span>
+            <span class="pill">Tarih: <b id="txtReportDate" style="color:var(--text)"></b></span>
+            <span class="pill">Araç: <b id="txtReportVehicle" style="color:var(--text)"></b></span>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="kpi">
+            <div class="k"><div class="v" id="kpiKm">0</div><div class="l">Toplam Km</div></div>
+            <div class="k"><div class="v" id="kpiWork">0</div><div class="l">Çalışma Süresi</div></div>
+            <div class="k"><div class="v" id="kpiRest">0</div><div class="l">Dinlenme Süresi</div></div>
+            <div class="k"><div class="v" id="kpiWait">0</div><div class="l">Toplam Bekleme</div></div>
+          </div>
+
+          <div class="sep"></div>
+
+          <h2>Tur Bazlı Özet</h2>
+          <div class="list" id="tourSummaryList"></div>
+
+          <div class="sep"></div>
+
+          <h2>Ham Olaylar (Log)</h2>
+          <div class="timeline" id="rawLogBox"></div>
+
+          <div class="sep"></div>
+
+          <div class="btnbar">
+            <button class="secondary" id="btnBackToEod" type="button">Gün Sonuna Dön</button>
+            <button class="secondary" id="btnBackToRoutes2" type="button">Rotalara Dön</button>
+            <button id="btnExportJson" type="button">JSON Dışa Aktar</button>
+          </div>
+
+          <div class="muted" style="margin-top:10px;">
+            Not: Km değerleri demo amaçlıdır. Gerçek uygulamada GPS/odometre entegrasyonu gerekir.
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Context / debug panel -->
+      <aside class="card">
+        <h2>Durum Paneli</h2>
+        <div class="sep"></div>
+        <div class="row">
+          <div class="pill">Login: <b id="sLogin" style="color:var(--text)">-</b></div>
+          <div class="pill">Aktif Ekran: <b id="sScreen" style="color:var(--text)">-</b></div>
+        </div>
+        <div class="sep"></div>
+        <h3>Aktif Tur</h3>
+        <div class="muted" id="sTour">-</div>
+        <div class="sep"></div>
+        <h3>Notlar</h3>
+        <div class="notice">
+          Bu prototip, iş akışınızı doğrulamak içindir:
+          <ul style="margin:8px 0 0 18px; padding:0; color:var(--muted);">
+            <li>Backend yerine mock data kullanır.</li>
+            <li>Mail gönderimi yerine “mail önizleme” üretir.</li>
+            <li>Durum süreleri ardışık geçişlerden hesaplanır.</li>
+          </ul>
+        </div>
+        <div class="sep"></div>
+        <h3>Hızlı Test</h3>
+        <div class="btnbar">
+          <button class="secondary" id="btnSeedData" type="button">Demo Veriyi Sıfırla</button>
+          <button class="secondary" id="btnGoReport" type="button">Rapor Ekranı</button>
+        </div>
+
+        <div class="footer">
+          <div>Prototip Sürüm: <span class="mono">v0.1</span></div>
+          <div class="mono" id="clock">-</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    /**********************
+     * Mock Backend Data  *
+     **********************/
+    const MOCK = {
+      users: [
+        { username: "demo", password: "1234", driverName: "Demo Şoför", driverId: "DRV-001" },
+        { username: "ali", password: "1234", driverName: "Ali Yılmaz", driverId: "DRV-002" }
+      ],
+      vehicles: [
+        { id: "V-34ABC123", plate: "34 ABC 123" },
+        { id: "V-06DEF456", plate: "06 DEF 456" }
+      ],
+      // Rotalar: her turun km ve müşteri maili (demo)
+      tours: [
+        { id: "TUR-1001", title: "Tur 1", from: "A Firma", to: "B Depo", kmPlan: 120, customerEmail: "customerA@example.com" },
+        { id: "TUR-1002", title: "Tur 2", from: "C Şirket", to: "D Teslimat", kmPlan: 85,  customerEmail: "customerB@example.com" },
+        { id: "TUR-1003", title: "Tur 3", from: "E Merkez", to: "F Fabrika", kmPlan: 140, customerEmail: "customerC@example.com" }
+      ]
+    };
+
+    /**********************
+     * App State          *
+     **********************/
+    const State = {
+      session: null, // {username, driverName, driverId}
+      selectedVehicle: null, // {id, plate} or {id:'MANUAL', plate:'...'}
+      startCheck: { damage: null, photos: [] }, // damage: true/false
+      eodCheck:   { damage: null, photos: [] },
+      tours: [], // assigned tours
+      activeTourId: null,
+      events: [], // global events (for report/log)
+      tourEvents: {}, // map tourId -> events
+      tourPOD: {}, // tourId -> file meta
+      dayStartedAt: null,
+      dayEndedAt: null,
+    };
+
+    const StatusMap = {
+      TRAFIK_BEKLEME:      { label: "Trafikte Bekleme", type:"WAIT" },
+      YUKLEME_BEKLEME:     { label: "Yüklemede Bekleme", type:"WAIT" },
+      TESLIMAT_BEKLEME:    { label: "Teslimatta Bekleme", type:"WAIT" },
+      YUKLEME_YAPILIYOR:   { label: "Yükleme Yapılıyor", type:"WORK" },
+      TESLIMAT_YAPILIYOR:  { label: "Teslimat Yapılıyor", type:"WORK" },
+      DINLENME:            { label: "Dinlenme", type:"REST" },
+      TUR_TAMAMLANDI:      { label: "Tur Tamamlandı", type:"END" },
+      TUR_BASLADI:         { label: "Tur Başladı", type:"START" },
+      ISE_BASLADI:         { label: "İşe Başladı", type:"START" },
+      IS_BITISI:           { label: "İş Bitişi", type:"END" },
+    };
+
+    /**********************
+     * Utilities          *
+     **********************/
+    const $ = (id) => document.getElementById(id);
+    const nowISO = () => new Date().toISOString();
+    const nowLocal = () => new Date().toLocaleString("tr-TR");
+    const fmtDur = (ms) => {
+      if (!ms || ms < 0) ms = 0;
+      const totalMin = Math.round(ms / 60000);
+      const h = Math.floor(totalMin / 60);
+      const m = totalMin % 60;
+      return `${h} saat ${m} dk`;
+    };
+
+    function setScreen(name){
+      const screens = ["Login","Vehicle","Routes","Tour","EOD","Report"];
+      for (const s of screens){
+        const el = $("screen"+s);
+        if (el) el.classList.toggle("hidden", s !== name);
+      }
+      $("sScreen").textContent = name;
+    }
+
+    function setSessionBadge(){
+      if (!State.session){
+        $("sessionBadge").textContent = "Oturum: Kapalı";
+        $("logoutBtn").classList.add("hidden");
+        $("sLogin").textContent = "Kapalı";
+        return;
+      }
+      $("sessionBadge").textContent = `Oturum: ${State.session.driverName}`;
+      $("logoutBtn").classList.remove("hidden");
+      $("sLogin").textContent = State.session.username;
+    }
+
+    function resetDemo(){
+      State.session = null;
+      State.selectedVehicle = null;
+      State.startCheck = { damage:null, photos:[] };
+      State.eodCheck = { damage:null, photos:[] };
+      State.tours = JSON.parse(JSON.stringify(MOCK.tours));
+      State.activeTourId = null;
+      State.events = [];
+      State.tourEvents = {};
+      State.tourPOD = {};
+      State.dayStartedAt = null;
+      State.dayEndedAt = null;
+
+      // Reset UI bits that may persist
+      $("inpUser").value = "";
+      $("inpPass").value = "";
+      $("loginErr").textContent = "";
+      seedVehicleSelect();
+      updateVehicleCheckUI(true);
+      updateVehicleCheckUI(false);
+      $("routesList").innerHTML = "";
+      $("timelineBox").innerHTML = "";
+      $("rawLogBox").innerHTML = "";
+      $("tourSummaryList").innerHTML = "";
+      $("mailPreview").classList.add("hidden");
+      $("mailPreview").textContent = "";
+      $("podBox").classList.add("hidden");
+      $("podInfo").textContent = "";
+      $("filePOD").value = "";
+      $("finishInfo").textContent = "";
+
+      setSessionBadge();
+      setScreen("Login");
+      $("sTour").textContent = "-";
+    }
+
+    function seedVehicleSelect(){
+      const sel = $("selVehicle");
+      sel.innerHTML = "";
+      const optManual = document.createElement("option");
+      optManual.value = "MANUAL";
+      optManual.textContent = "Araç Yok / Manuel";
+      sel.appendChild(optManual);
+      for (const v of MOCK.vehicles){
+        const o = document.createElement("option");
+        o.value = v.id;
+        o.textContent = v.plate;
+        sel.appendChild(o);
+      }
+      sel.value = "MANUAL";
+      $("inpManualVehicle").value = "";
+    }
+
+    function getChosenVehicle(){
+      const choice = $("selVehicle").value;
+      if (choice === "MANUAL"){
+        const plate = $("inpManualVehicle").value.trim();
+        return { id:"MANUAL", plate: plate || "Manuel (Girilmedi)" };
+      }
+      const found = MOCK.vehicles.find(x => x.id === choice);
+      return found ? { ...found } : { id: choice, plate: "Bilinmeyen" };
+    }
+
+    function addEvent(evt){
+      // evt: {ts, type, tourId?, status?, note?, data?}
+      State.events.push(evt);
+      if (evt.tourId){
+        State.tourEvents[evt.tourId] = State.tourEvents[evt.tourId] || [];
+        State.tourEvents[evt.tourId].push(evt);
+      }
+    }
+
+    function renderTimeline(tourId){
+      const box = $("timelineBox");
+      box.innerHTML = "";
+      const evs = (State.tourEvents[tourId] || []).slice().sort((a,b)=>a.ts.localeCompare(b.ts));
+      if (evs.length === 0){
+        box.innerHTML = `<div class="ev">Henüz kayıt yok.</div>`;
+        return;
+      }
+      for (const e of evs){
+        const label = e.status ? (StatusMap[e.status]?.label || e.status) : e.type;
+        const div = document.createElement("div");
+        div.className = "ev";
+        div.innerHTML = `<b>${label}</b><br/><span class="mono">${new Date(e.ts).toLocaleString("tr-TR")}</span>${e.note ? `<br/>${e.note}`:""}`;
+        box.appendChild(div);
+      }
+    }
+
+    function updateVehicleCheckUI(isStart){
+      const damage = isStart ? State.startCheck.damage : State.eodCheck.damage;
+      const photos = isStart ? State.startCheck.photos : State.eodCheck.photos;
+
+      const dotDamage = isStart ? $("dotDamageStart") : $("dotEodDamage");
+      const txtDamage = isStart ? $("txtDamageStart") : $("txtEodDamage");
+      const dotPhotos = isStart ? $("dotPhotosStart") : $("dotEodPhotos");
+      const txtPhotos = isStart ? $("txtPhotosStart") : $("txtEodPhotos");
+
+      // Damage indicator
+      if (damage === null){
+        dotDamage.className = "dot";
+        txtDamage.textContent = "Seçilmedi";
+      } else if (damage === false){
+        dotDamage.className = "dot ok";
+        txtDamage.textContent = "Hasarsız";
+      } else {
+        dotDamage.className = "dot danger";
+        txtDamage.textContent = "Hasar Var";
+      }
+
+      // Photo indicator
+      if (!photos || photos.length === 0){
+        dotPhotos.className = "dot";
+        txtPhotos.textContent = "Fotoğraf yok";
+      } else {
+        dotPhotos.className = "dot ok";
+        txtPhotos.textContent = `${photos.length} dosya seçildi`;
+      }
+
+      // Photo box visibility
+      if (isStart){
+        $("startPhotoBox").classList.toggle("hidden", !(damage === true));
+        $("btnVehicleContinue").disabled = (State.startCheck.damage === null) || (State.startCheck.damage === true && State.startCheck.photos.length === 0);
+      } else {
+        $("eodPhotoBox").classList.toggle("hidden", !(damage === true));
+        $("btnFinishDay").disabled = (State.eodCheck.damage === null) || (State.eodCheck.damage === true && State.eodCheck.photos.length === 0);
+      }
+    }
+
+    function renderRoutes(){
+      const list = $("routesList");
+      list.innerHTML = "";
+      const tours = State.tours;
+      for (const t of tours){
+        const isDone = (State.tourEvents[t.id] || []).some(e => e.status === "TUR_TAMAMLANDI");
+        const item = document.createElement("div");
+        item.className = "item";
+        item.innerHTML = `
+          <div class="meta">
+            <div class="title">${t.title}: ${t.from} → ${t.to}</div>
+            <div class="sub">Plan Km: ${t.kmPlan} km | Müşteri: <span class="mono">${t.customerEmail}</span></div>
+          </div>
+          <div class="right">
+            <span class="pill"><span class="dot ${isDone ? "ok":"warn"}"></span> ${isDone ? "Tamamlandı":"Bekliyor"}</span>
+            <button ${isDone ? "disabled":""} data-start-tour="${t.id}" type="button">Start</button>
+          </div>
+        `;
+        list.appendChild(item);
+      }
+    }
+
+    function startTour(tourId){
+      State.activeTourId = tourId;
+      const t = State.tours.find(x => x.id === tourId);
+      $("txtActiveTour").textContent = t ? `${t.title} (${t.from} → ${t.to})` : tourId;
+      $("sTour").textContent = State.activeTourId;
+
+      addEvent({ ts: nowISO(), type:"TOUR", tourId, status:"TUR_BASLADI" });
+      renderTimeline(tourId);
+
+      $("podBox").classList.add("hidden");
+      $("mailPreview").classList.add("hidden");
+      $("mailPreview").textContent = "";
+      setScreen("Tour");
+    }
+
+    function setStatus(status){
+      const tourId = State.activeTourId;
+      if (!tourId) return;
+
+      addEvent({ ts: nowISO(), type:"STATUS", tourId, status });
+      renderTimeline(tourId);
+
+      if (status === "TUR_TAMAMLANDI"){
+        $("podBox").classList.remove("hidden");
+      }
+    }
+
+    function computeDurationsForTour(tourId){
+      const evs = (State.tourEvents[tourId] || []).slice().sort((a,b)=>a.ts.localeCompare(b.ts));
+      // We only consider events with status, and compute time between consecutive statuses.
+      let workMs=0, restMs=0, waitMs=0, totalMs=0;
+      for (let i=0;i<evs.length-1;i++){
+        const a = evs[i], b = evs[i+1];
+        if (!a.status || !b.ts) continue;
+        const dt = new Date(b.ts) - new Date(a.ts);
+        totalMs += dt;
+
+        const type = StatusMap[a.status]?.type;
+        if (type === "WORK") workMs += dt;
+        else if (type === "REST") restMs += dt;
+        else if (type === "WAIT") waitMs += dt;
+      }
+      return { workMs, restMs, waitMs, totalMs };
+    }
+
+    function computeDayReport(){
+      // Compute from first "İşe Başladı" to "İş Bitişi" for overall work duration proxy:
+      // We will also aggregate tour durations.
+      const today = new Date().toLocaleDateString("tr-TR");
+
+      // Total planned km of completed tours (demo)
+      const completedTours = State.tours.filter(t => (State.tourEvents[t.id]||[]).some(e => e.status === "TUR_TAMAMLANDI"));
+      const totalKm = completedTours.reduce((s,t)=>s + (t.kmPlan || 0), 0);
+
+      let aggWork=0, aggRest=0, aggWait=0, aggTotal=0;
+      const perTour = [];
+
+      for (const t of State.tours){
+        const d = computeDurationsForTour(t.id);
+        if ((State.tourEvents[t.id]||[]).length > 0){
+          perTour.push({ tour: t, ...d });
+          aggWork += d.workMs;
+          aggRest += d.restMs;
+          aggWait += d.waitMs;
+          aggTotal += d.totalMs;
+        }
+      }
+
+      // If driver never switched states, durations could be 0. That's OK for prototype.
+      return {
+        date: today,
+        vehicle: State.selectedVehicle?.plate || "-",
+        driver: State.session?.driverName || "-",
+        totalKm,
+        workMs: aggWork,
+        restMs: aggRest,
+        waitMs: aggWait,
+        totalMs: aggTotal,
+        perTour
+      };
+    }
+
+    function renderReport(){
+      const rep = computeDayReport();
+      $("txtDriverName").textContent = rep.driver;
+      $("txtReportDate").textContent = rep.date;
+      $("txtReportVehicle").textContent = rep.vehicle;
+
+      $("kpiKm").textContent = `${rep.totalKm} km`;
+      $("kpiWork").textContent = fmtDur(rep.workMs);
+      $("kpiRest").textContent = fmtDur(rep.restMs);
+      $("kpiWait").textContent = fmtDur(rep.waitMs);
+
+      // Per-tour summary
+      const list = $("tourSummaryList");
+      list.innerHTML = "";
+      if (rep.perTour.length === 0){
+        list.innerHTML = `<div class="item"><div class="meta"><div class="title">Henüz tur verisi yok</div><div class="sub">Durum geçişleri oluşturduktan sonra rapor dolacaktır.</div></div></div>`;
+      } else {
+        for (const x of rep.perTour){
+          const isDone = (State.tourEvents[x.tour.id]||[]).some(e => e.status === "TUR_TAMAMLANDI");
+          const item = document.createElement("div");
+          item.className = "item";
+          item.innerHTML = `
+            <div class="meta">
+              <div class="title">${x.tour.title}: ${x.tour.from} → ${x.tour.to}</div>
+              <div class="sub">Km: ${x.tour.kmPlan} | Çalışma: ${fmtDur(x.workMs)} | Dinlenme: ${fmtDur(x.restMs)} | Bekleme: ${fmtDur(x.waitMs)}</div>
+            </div>
+            <div class="right">
+              <span class="pill"><span class="dot ${isDone ? "ok":"warn"}"></span> ${isDone ? "Tamamlandı":"Devam ediyor / Bekliyor"}</span>
+            </div>
+          `;
+          list.appendChild(item);
+        }
+      }
+
+      // Raw log
+      const raw = $("rawLogBox");
+      raw.innerHTML = "";
+      const evs = State.events.slice().sort((a,b)=>a.ts.localeCompare(b.ts));
+      if (evs.length === 0){
+        raw.innerHTML = `<div class="ev">Log boş.</div>`;
+      } else {
+        for (const e of evs){
+          const label = e.status ? (StatusMap[e.status]?.label || e.status) : e.type;
+          const tourTxt = e.tourId ? ` | Tur: ${e.tourId}` : "";
+          const div = document.createElement("div");
+          div.className = "ev";
+          div.innerHTML = `<b>${label}</b><br/><span class="mono">${new Date(e.ts).toLocaleString("tr-TR")}</span><br/>${tourTxt}`;
+          raw.appendChild(div);
+        }
+      }
+    }
+
+    function buildCustomerMailPreview(tourId){
+      const t = State.tours.find(x => x.id === tourId);
+      const evs = (State.tourEvents[tourId] || []).slice().sort((a,b)=>a.ts.localeCompare(b.ts));
+      const last = evs[evs.length-1];
+      const pod = State.tourPOD[tourId];
+
+      const subject = `Tur Bilgilendirme: ${t?.title || tourId} (${State.session?.driverName || ""})`;
+      const bodyLines = [];
+      bodyLines.push(`Merhaba,`);
+      bodyLines.push(``);
+      bodyLines.push(`Tur: ${t?.title} | ${t?.from} → ${t?.to}`);
+      bodyLines.push(`Sürücü: ${State.session?.driverName} (${State.session?.driverId})`);
+      bodyLines.push(`Araç: ${State.selectedVehicle?.plate || "-"}`);
+      bodyLines.push(``);
+      bodyLines.push(`Son Durum: ${StatusMap[last?.status]?.label || last?.status || "-"}`);
+      bodyLines.push(`Zaman: ${last ? new Date(last.ts).toLocaleString("tr-TR") : "-"}`);
+      bodyLines.push(``);
+      bodyLines.push(`Teslimat Belgesi: ${pod ? (pod.name + " (" + Math.round(pod.size/1024) + " KB)") : "Yüklenmedi"}`);
+      bodyLines.push(``);
+      bodyLines.push(`İyi çalışmalar,`);
+      bodyLines.push(`NedLine / Operasyon`);
+
+      return { to: t?.customerEmail || "-", subject, body: bodyLines.join("\n") };
+    }
+
+    /**********************
+     * Wire UI            *
+     **********************/
+    function init(){
+      resetDemo();
+
+      // Clock
+      setInterval(()=>{$("clock").textContent = new Date().toLocaleString("tr-TR");}, 1000);
+
+      $("btnSeedData").addEventListener("click", resetDemo);
+
+      $("btnLogin").addEventListener("click", ()=>{
+        const u = $("inpUser").value.trim();
+        const p = $("inpPass").value.trim();
+        const found = MOCK.users.find(x => x.username === u && x.password === p);
+        if (!found){
+          $("loginErr").textContent = "Hatalı kullanıcı adı veya şifre.";
+          return;
+        }
+        $("loginErr").textContent = "";
+        State.session = { username: found.username, driverName: found.driverName, driverId: found.driverId };
+        setSessionBadge();
+
+        // Day start event (first time entering vehicle screen)
+        if (!State.dayStartedAt){
+          State.dayStartedAt = nowISO();
+          addEvent({ ts: State.dayStartedAt, type:"DAY", status:"ISE_BASLADI" });
+        }
+
+        // Prepare vehicle select
+        seedVehicleSelect();
+        updateVehicleCheckUI(true);
+        setScreen("Vehicle");
+      });
+
+      $("logoutBtn").addEventListener("click", ()=>{
+        resetDemo();
+      });
+
+      $("selVehicle").addEventListener("change", ()=>{
+        State.selectedVehicle = getChosenVehicle();
+        $("txtVehicleChosen").textContent = State.selectedVehicle.plate;
+        $("txtEodVehicle").textContent = State.selectedVehicle.plate;
+        $("txtReportVehicle").textContent = State.selectedVehicle.plate;
+      });
+
+      $("inpManualVehicle").addEventListener("input", ()=>{
+        State.selectedVehicle = getChosenVehicle();
+      });
+
+      // Start check buttons
+      $("btnNoDamageStart").addEventListener("click", ()=>{
+        State.startCheck.damage = false;
+        State.startCheck.photos = [];
+        $("fileStartDamage").value = "";
+        $("startPhotoList").textContent = "";
+        updateVehicleCheckUI(true);
+      });
+      $("btnDamageStart").addEventListener("click", ()=>{
+        State.startCheck.damage = true;
+        updateVehicleCheckUI(true);
+      });
+      $("fileStartDamage").addEventListener("change", (e)=>{
+        const files = Array.from(e.target.files || []);
+        State.startCheck.photos = files.map(f => ({ name: f.name, size: f.size, type: f.type }));
+        $("startPhotoList").textContent = State.startCheck.photos.map(x => `• ${x.name} (${Math.round(x.size/1024)} KB)`).join("\n");
+        updateVehicleCheckUI(true);
+      });
+
+      $("btnVehicleContinue").addEventListener("click", ()=>{
+        State.selectedVehicle = getChosenVehicle();
+        $("txtVehicleChosen").textContent = State.selectedVehicle.plate;
+        $("txtEodVehicle").textContent = State.selectedVehicle.plate;
+
+        renderRoutes();
+        setScreen("Routes");
+      });
+
+      $("btnToVehicle").addEventListener("click", ()=>{
+        setScreen("Vehicle");
+      });
+
+      // Routes start buttons (event delegation)
+      $("routesList").addEventListener("click", (e)=>{
+        const btn = e.target.closest("button[data-start-tour]");
+        if (!btn) return;
+        const tourId = btn.getAttribute("data-start-tour");
+        startTour(tourId);
+      });
+
+      // Status buttons
+      $("screenTour").addEventListener("click", (e)=>{
+        const btn = e.target.closest("button[data-status]");
+        if (!btn) return;
+        const st = btn.getAttribute("data-status");
+        setStatus(st);
+      });
+
+      $("filePOD").addEventListener("change", (e)=>{
+        const f = (e.target.files && e.target.files[0]) ? e.target.files[0] : null;
+        if (!f){
+          $("podInfo").textContent = "";
+          return;
+        }
+        State.tourPOD[State.activeTourId] = { name: f.name, size: f.size, type: f.type };
+        $("podInfo").textContent = `Seçildi: ${f.name} (${Math.round(f.size/1024)} KB)`;
+      });
+
+      $("btnSendCustomerMail").addEventListener("click", ()=>{
+        const tourId = State.activeTourId;
+        const mail = buildCustomerMailPreview(tourId);
+
+        // Log "mail intent"
+        addEvent({ ts: nowISO(), type:"MAIL", tourId, note:`To: ${mail.to} | Subject: ${mail.subject}` });
+
+        $("mailPreview").classList.remove("hidden");
+        $("mailPreview").innerHTML = `
+          <div style="font-weight:800; margin-bottom:6px;">Mail Önizleme</div>
+          <div><b>To:</b> <span class="mono">${mail.to}</span></div>
+          <div><b>Subject:</b> ${mail.subject}</div>
+          <div class="sep"></div>
+          <pre style="white-space:pre-wrap; margin:0; color:var(--muted);">${mail.body}</pre>
+        `;
+      });
+
+      $("btnBackToRoutes").addEventListener("click", ()=>{
+        State.activeTourId = null;
+        $("sTour").textContent = "-";
+        renderRoutes();
+        setScreen("Routes");
+      });
+
+      $("btnForceEndTour").addEventListener("click", ()=>{
+        // Allow ending the tour even if not completed
+        if (!State.activeTourId) return;
+        addEvent({ ts: nowISO(), type:"STATUS", tourId: State.activeTourId, status:"TUR_TAMAMLANDI" });
+        renderTimeline(State.activeTourId);
+        $("podBox").classList.remove("hidden");
+      });
+
+      // End of day / Finish day
+      $("btnNoDamageEod").addEventListener("click", ()=>{
+        State.eodCheck.damage = false;
+        State.eodCheck.photos = [];
+        $("fileEod").value = "";
+        $("eodPhotoList").textContent = "";
+        updateVehicleCheckUI(false);
+      });
+      $("btnDamageEod").addEventListener("click", ()=>{
+        State.eodCheck.damage = true;
+        updateVehicleCheckUI(false);
+      });
+      $("fileEod").addEventListener("change", (e)=>{
+        const files = Array.from(e.target.files || []);
+        State.eodCheck.photos = files.map(f => ({ name: f.name, size: f.size, type: f.type }));
+        $("eodPhotoList").textContent = State.eodCheck.photos.map(x => `• ${x.name} (${Math.round(x.size/1024)} KB)`).join("\n");
+        updateVehicleCheckUI(false);
+      });
+
+      $("btnFinishDay").addEventListener("click", ()=>{
+        State.dayEndedAt = nowISO();
+        addEvent({ ts: State.dayEndedAt, type:"DAY", status:"IS_BITISI" });
+        $("finishInfo").textContent = `İş bitişi kaydedildi: ${new Date(State.dayEndedAt).toLocaleString("tr-TR")}`;
+        alert("İş bitişi kaydedildi (demo). Günlük raporu görüntüleyebilirsiniz.");
+      });
+
+      $("btnViewReport").addEventListener("click", ()=>{
+        renderReport();
+        setScreen("Report");
+      });
+
+      $("btnBackToEod").addEventListener("click", ()=>{
+        setScreen("EOD");
+      });
+
+      $("btnBackToRoutes2").addEventListener("click", ()=>{
+        renderRoutes();
+        setScreen("Routes");
+      });
+
+      $("btnExportJson").addEventListener("click", ()=>{
+        const payload = {
+          session: State.session,
+          vehicle: State.selectedVehicle,
+          startCheck: State.startCheck,
+          eodCheck: State.eodCheck,
+          tours: State.tours,
+          tourPOD: State.tourPOD,
+          events: State.events,
+          tourEvents: State.tourEvents,
+          dayStartedAt: State.dayStartedAt,
+          dayEndedAt: State.dayEndedAt,
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "driver-portal-demo-export.json";
+        a.click();
+        setTimeout(()=>URL.revokeObjectURL(url), 1000);
+      });
+
+      // Right panel quick nav
+      $("btnGoReport").addEventListener("click", ()=>{
+        if (!State.session){
+          alert("Önce giriş yapın.");
+          return;
+        }
+        renderReport();
+        setScreen("Report");
+      });
+
+      // Routes -> End of day availability:
+      // For demo: After at least one tour done, user can go to EOD by pressing keyboard shortcut (or add a simple button)
+      // We'll add a keyboard shortcut: Shift+E
+      document.addEventListener("keydown", (e)=>{
+        if (e.shiftKey && e.key.toLowerCase() === "e"){
+          if (!State.session) return;
+          State.selectedVehicle = State.selectedVehicle || getChosenVehicle();
+          $("txtEodVehicle").textContent = State.selectedVehicle?.plate || "-";
+          updateVehicleCheckUI(false);
+          setScreen("EOD");
+        }
+      });
+
+      // Add a subtle route->EOD button when on Routes screen
+      const routesCard = $("screenRoutes");
+      const eodBtn = document.createElement("button");
+      eodBtn.type = "button";
+      eodBtn.className = "secondary";
+      eodBtn.textContent = "Gün Sonu (Shift+E)";
+      eodBtn.addEventListener("click", ()=>{
+        State.selectedVehicle = State.selectedVehicle || getChosenVehicle();
+        $("txtEodVehicle").textContent = State.selectedVehicle?.plate || "-";
+        updateVehicleCheckUI(false);
+        setScreen("EOD");
+      });
+      const bar = routesCard.querySelector(".btnbar");
+      bar.appendChild(eodBtn);
+
+      // Initial vehicle select seed
+      seedVehicleSelect();
+      $("selVehicle").dispatchEvent(new Event("change"));
+    }
+
+    init();
+  </script>
+</body>
+</html>
