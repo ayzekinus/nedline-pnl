@@ -1,0 +1,1774 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NedLine - Rota/Tur Kâr-Zarar (Manuel Giriş + TLN)</title>
+  <style>
+    :root { --b:#e6e6e6; --bg:#fafafa; --txt:#111; --muted:#666; --card:#fff; }
+    body{ font-family: Arial, sans-serif; margin:18px; color:var(--txt); background:#fff; }
+    h1{ margin:0 0 6px; font-size:20px; }
+    .muted{ color:var(--muted); font-size:12px; line-height:1.4; }
+    .topbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0 14px; }
+    .tabbar{ display:flex; gap:8px; flex-wrap:wrap; }
+    .tabbar button{
+      border:1px solid var(--b); background:var(--bg); padding:10px 12px; border-radius:12px; cursor:pointer;
+      font-size:13px;
+    }
+    .tabbar button.active{ background:#111; color:#fff; border-color:#111; }
+    .card{ border:1px solid var(--b); border-radius:14px; padding:14px; margin-top:12px; background:var(--card); }
+    .row{ display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; }
+    label{ font-size:12px; }
+    input, select, textarea{
+      border:1px solid var(--b); border-radius:10px; padding:8px 10px; font-size:13px; background:#fff;
+    }
+    textarea{ min-height:80px; width:100%; }
+    button{
+      border:1px solid var(--b); background:var(--bg); padding:10px 12px; border-radius:12px; cursor:pointer;
+      font-size:13px;
+    }
+    button:hover{ background:#f0f0f0; }
+    button.danger{ background:#fff3f3; border-color:#ffd0d0; }
+    button.primary{ background:#111; color:#fff; border-color:#111; }
+    button.primary:hover{ background:#000; }
+    hr{ border:0; border-top:1px solid #eee; margin:12px 0; }
+    table{ width:100%; border-collapse:collapse; margin-top:10px; }
+    th, td{ border:1px solid #eee; padding:8px; font-size:12px; vertical-align:top; }
+    th{ background:#fbfbfb; text-align:left; position:sticky; top:0; z-index:2; }
+    .right{ text-align:right; }
+    .neg{ background:#ffecec; }
+    .ok{ background:#f2fff2; }
+    .pill{ display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid var(--b); font-size:12px; background:#fff; }
+    .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    @media(max-width:980px){ .grid2{ grid-template-columns:1fr; } }
+    .scroller{ overflow:auto; max-height:520px; border:1px solid #eee; border-radius:12px; }
+    .toolbar{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .small{ font-size:11px; }
+    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:12px; }
+    .split{ display:grid; grid-template-columns: 1.2fr 0.8fr; gap:12px; }
+    @media(max-width:980px){ .split{ grid-template-columns:1fr; } }
+    .hint{ background:#fff; border:1px dashed #ddd; border-radius:12px; padding:10px; }
+  </style>
+</head>
+<body>
+
+<h1>NedLine - Rota/Tur Bazında Kâr-Zarar (Manuel Veri + TLN)</h1>
+<div class="muted">
+  CSV yok. Verileri ekrandan girersiniz. Kayıtlar tarayıcıda saklanır (LocalStorage).
+  TLN: <b>haftalık 40 saat üstü %30</b>, <b>Cumartesi %50</b>, <b>Pazar %100</b>.
+  Gece (21:00–04:00) otomatik hesaplanır.
+</div>
+
+<div class="topbar">
+  <div class="tabbar" id="tabs"></div>
+  <div style="flex:1"></div>
+  <div class="toolbar">
+    <button id="btnBackupExport">Yedek (JSON) Dışa Aktar</button>
+    <button id="btnBackupImport">Yedek (JSON) İçe Aktar</button>
+    <button class="danger" id="btnReset">Tüm Veriyi Sıfırla</button>
+  </div>
+</div>
+
+<div id="view"></div>
+<input type="file" id="fileInput" style="display:none" accept=".json"/>
+
+<script>
+/* =========================
+   Manual P&L System + TLN rules
+   - LocalStorage persistence
+   - CRUD: Drivers, Contracts, Routes, Vehicles, Tours, Legs
+   - Field Manager (add custom fields)
+   - Auto night/weekend hour calc from start/end
+   - TLN weekly overtime allocation (40h, +30%) + Sat(+50%) + Sun(+100%)
+   ========================= */
+
+const STORAGE_KEY = "nedline_pnl_manual_tln_v2";
+
+/** ---------- Utilities ---------- */
+const uuid = () => "id_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = (x) => {
+  if (x === null || x === undefined) return 0;
+  const s = String(x).trim().replace(",", ".");
+  const v = parseFloat(s);
+  return isNaN(v) ? 0 : v;
+};
+const asBool = (v) => (v === true || v === 1 || v === "1" || String(v).toLowerCase()==="true");
+const fmt = (x) => (isFinite(x) ? x.toFixed(2) : "0.00");
+const fmt1 = (x) => (isFinite(x) ? x.toFixed(1) : "0.0");
+
+function downloadText(text, filename, mime="application/json;charset=utf-8") {
+  const blob = new Blob([text], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function toCSV(rows){
+  if (!rows.length) return "";
+  const headers = Object.keys(rows[0]);
+  const q = (v) => {
+    const s = String(v ?? "");
+    if (s.includes(",") || s.includes(";") || s.includes('"') || s.includes("\n")) {
+      return `"${s.replace(/"/g,'""')}"`;
+    }
+    return s;
+  };
+  const out = [];
+  out.push(headers.join(","));
+  for (const r of rows){
+    out.push(headers.map(h => q(r[h])).join(","));
+  }
+  return out.join("\n");
+}
+
+/** ---------- Time calculations (Night/Weekend) ---------- */
+/**
+ * Night window: 21:00–04:00 (spans midnight)
+ * Approach: For each calendar day segment, overlap with [00:00-04:00] and [21:00-24:00]
+ * Also compute Sat/Sun hours based on actual day segments.
+ */
+function nextMidnight(d){
+  const x = new Date(d);
+  x.setHours(24,0,0,0);
+  return x;
+}
+function sameDayMidnight(d){
+  const x = new Date(d);
+  x.setHours(0,0,0,0);
+  return x;
+}
+function overlapMinutes(aStart, aEnd, bStart, bEnd){
+  const s = Math.max(aStart.getTime(), bStart.getTime());
+  const e = Math.min(aEnd.getTime(), bEnd.getTime());
+  const diff = e - s;
+  return diff > 0 ? diff/60000 : 0;
+}
+function computeTimeMetrics(startStr, endStr, breakMin){
+  if (!startStr || !endStr) return null;
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+  if (!(start instanceof Date) || isNaN(start)) return null;
+  if (!(end instanceof Date) || isNaN(end)) return null;
+  if (end <= start) return null;
+
+  let totalMin = (end - start)/60000;
+  let nightMin = 0;
+  let satMin = 0;
+  let sunMin = 0;
+
+  let cursor = new Date(start);
+  while (cursor < end){
+    const segEnd = new Date(Math.min(nextMidnight(cursor).getTime(), end.getTime()));
+    const dayMid = sameDayMidnight(cursor);
+
+    const dow = cursor.getDay(); // 0 Sun ... 6 Sat
+    const segMinutes = (segEnd - cursor)/60000;
+    if (dow === 6) satMin += segMinutes;
+    if (dow === 0) sunMin += segMinutes;
+
+    // Night window part 1: 00:00-04:00
+    const w1s = new Date(dayMid); w1s.setHours(0,0,0,0);
+    const w1e = new Date(dayMid); w1e.setHours(4,0,0,0);
+    nightMin += overlapMinutes(cursor, segEnd, w1s, w1e);
+
+    // Night window part 2: 21:00-24:00
+    const w2s = new Date(dayMid); w2s.setHours(21,0,0,0);
+    const w2e = new Date(dayMid); w2e.setHours(24,0,0,0);
+    nightMin += overlapMinutes(cursor, segEnd, w2s, w2e);
+
+    cursor = segEnd;
+  }
+
+  // Apply break proportionally (simple but practical)
+  const b = Math.max(0, Math.min(num(breakMin), totalMin));
+  const paidMin = Math.max(0, totalMin - b);
+  const ratio = totalMin > 0 ? (paidMin / totalMin) : 1;
+
+  return {
+    total_hours: paidMin / 60,
+    night_hours: (nightMin * ratio) / 60,
+    sat_hours: (satMin * ratio) / 60,
+    sun_hours: (sunMin * ratio) / 60
+  };
+}
+
+function isoWeekKey(dateStr){
+  // ISO week based on dateStr (YYYY-MM-DD)
+  const d0 = new Date(dateStr + "T00:00:00");
+  if (isNaN(d0)) return "UNKNOWN";
+  const d = new Date(Date.UTC(d0.getFullYear(), d0.getMonth(), d0.getDate()));
+  const dayNum = d.getUTCDay() || 7; // 1..7
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum); // Thursday
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  const y = d.getUTCFullYear();
+  const w = String(weekNo).padStart(2,"0");
+  return `${y}-W${w}`;
+}
+
+/** ---------- Default Schemas (Fields you can extend) ---------- */
+const PROVIDER_TYPES = [
+  "EMPLOYEE_TLN",
+  "ZZP_HOURLY",
+  "CHARTER_PER_KM",
+  "CHARTER_PER_HOUR",
+  "CHARTER_FIXED_TOUR"
+];
+const PRICE_MODELS = ["FIXED","PER_KM","PER_HOUR","MIXED"];
+const ALLOC_METHODS = ["KM","HOURS","REVENUE"];
+
+const defaultSchemas = {
+  drivers: [
+    {key:"driver_id", label:"Sürücü ID", type:"text", required:true},
+    {key:"name", label:"Ad Soyad", type:"text", required:true},
+    {key:"provider_type", label:"Profil Tipi", type:"select", required:true, options:PROVIDER_TYPES},
+    {key:"contract_id", label:"Sözleşme ID", type:"text", required:false},
+    {key:"active", label:"Aktif", type:"boolean", required:false, default:true}
+  ],
+  contracts: [
+    {key:"contract_id", label:"Sözleşme ID", type:"text", required:true},
+    {key:"provider_type", label:"Profil Tipi", type:"select", required:true, options:PROVIDER_TYPES},
+
+    {key:"hour_rate_eur", label:"Saat Ücreti (€) (TLN/ZZP/CharterHour)", type:"number", required:false},
+    {key:"km_rate_eur", label:"KM Ücreti (€) (CharterKM)", type:"number", required:false},
+    {key:"fixed_tour_fee_eur", label:"Sabit Tur Ücreti (€) (CharterFixed)", type:"number", required:false},
+
+    {key:"night_premium_pct", label:"Gece Primi % (21:00–04:00)", type:"number", required:false},
+    {key:"adr_per_km_eur", label:"ADR €/km (opsiyonel)", type:"number", required:false},
+
+    // TLN katsayıları (sizin verdiğiniz)
+    {key:"tln_overtime_after_hours", label:"TLN Overtime Eşiği (haftalık saat)", type:"number", required:false, default:40},
+    {key:"tln_overtime_pct", label:"TLN Overtime % (40 saat üstü)", type:"number", required:false, default:30},
+    {key:"tln_sat_pct", label:"TLN Cumartesi %", type:"number", required:false, default:50},
+    {key:"tln_sun_pct", label:"TLN Pazar %", type:"number", required:false, default:100},
+
+    {key:"notes", label:"Not", type:"text", required:false}
+  ],
+  routes: [
+    {key:"route_code", label:"Rota Kodu", type:"text", required:true},
+    {key:"customer_id", label:"Müşteri ID", type:"text", required:false},
+    {key:"origin", label:"Çıkış", type:"text", required:false},
+    {key:"destination", label:"Varış", type:"text", required:false},
+    {key:"service_type", label:"Servis Tipi (ADR/NORMAL)", type:"text", required:false},
+
+    {key:"price_model", label:"Fiyat Modeli", type:"select", required:true, options:PRICE_MODELS},
+    {key:"price_fixed", label:"Sabit Fiyat (€)", type:"number", required:false},
+    {key:"price_per_km", label:"KM Fiyatı (€)", type:"number", required:false},
+    {key:"price_per_hour", label:"Saat Fiyatı (€)", type:"number", required:false},
+    {key:"min_charge", label:"Minimum Ücret (€)", type:"number", required:false},
+    {key:"currency", label:"Para Birimi", type:"text", required:false, default:"EUR"}
+  ],
+  vehicles: [
+    {key:"vehicle_id", label:"Araç ID", type:"text", required:true},
+    {key:"plate", label:"Plaka", type:"text", required:false},
+    {key:"fuel_l_per_100km", label:"Tüketim (L/100km)", type:"number", required:false},
+    {key:"fuel_price_eur_per_l", label:"Yakıt Fiyatı (€/L)", type:"number", required:false},
+    {key:"active", label:"Aktif", type:"boolean", required:false, default:true}
+  ],
+  tours: [
+    {key:"tour_id", label:"Tur ID", type:"text", required:true},
+    {key:"date", label:"Tarih", type:"date", required:true},
+    {key:"driver_id", label:"Sürücü ID", type:"text", required:true},
+    {key:"vehicle_id", label:"Araç ID", type:"text", required:false},
+
+    {key:"allocation_method", label:"Sabit Tur Dağıtım (Fixed)", type:"select", required:false, options:ALLOC_METHODS},
+    {key:"fixed_tour_fee_override_eur", label:"Sabit Tur Ücreti Override (€) (opsiyonel)", type:"number", required:false},
+    {key:"notes", label:"Not", type:"text", required:false}
+  ],
+  legs: [
+    {key:"leg_id", label:"Satır ID", type:"text", required:true},
+    {key:"tour_id", label:"Tur ID", type:"text", required:true},
+    {key:"sequence_no", label:"Sıra", type:"number", required:true},
+    {key:"route_code", label:"Rota Kodu", type:"text", required:true},
+
+    {key:"start_dt", label:"Başlangıç (datetime)", type:"datetime", required:false},
+    {key:"end_dt", label:"Bitiş (datetime)", type:"datetime", required:false},
+    {key:"break_min", label:"Mola (dk)", type:"number", required:false, default:0},
+    {key:"auto_time_calc", label:"Saatleri otomatik hesapla", type:"boolean", required:false, default:true},
+
+    {key:"km", label:"KM", type:"number", required:true},
+    {key:"hours", label:"Saat (on-duty)", type:"number", required:true},
+    {key:"night_hours", label:"Gece Saat (21:00–04:00)", type:"number", required:false},
+    {key:"sat_hours", label:"Cumartesi Saat", type:"number", required:false},
+    {key:"sun_hours", label:"Pazar Saat", type:"number", required:false},
+
+    {key:"adr_flag", label:"ADR (0/1)", type:"boolean", required:false, default:false},
+    {key:"other_cost_eur", label:"Diğer Maliyet (€) (toll/ferry/parking)", type:"number", required:false},
+    {key:"revenue_override_eur", label:"Gelir Override (€) (opsiyonel)", type:"number", required:false},
+    {key:"notes", label:"Not", type:"text", required:false}
+  ]
+};
+
+/** ---------- Default data seed ---------- */
+function seedData(){
+  return {
+    settings: {
+      fuelPrice: 1.45,
+      fuelL100: 33.33,
+      adrPerKm: 0.25,
+      nightPct: 19,
+      overheadPct: 15,
+      fixedTourAllocation: "KM",
+      employeeDefaultHourCost: 28
+    },
+    schemas: JSON.parse(JSON.stringify(defaultSchemas)),
+    data: {
+      drivers: [
+        {driver_id:"DRV-001", name:"TLN Maaşlı", provider_type:"EMPLOYEE_TLN", contract_id:"CTR-TLN-001", active:true},
+        {driver_id:"DRV-010", name:"ZZP Saatlik", provider_type:"ZZP_HOURLY", contract_id:"CTR-ZZP-010", active:true},
+        {driver_id:"CHTR-700", name:"Charter Sabit Tur", provider_type:"CHARTER_FIXED_TOUR", contract_id:"CTR-CHTR-700", active:true}
+      ],
+      contracts: [
+        {contract_id:"CTR-TLN-001", provider_type:"EMPLOYEE_TLN", hour_rate_eur:28, night_premium_pct:19, adr_per_km_eur:0.25, tln_overtime_after_hours:40, tln_overtime_pct:30, tln_sat_pct:50, tln_sun_pct:100, notes:"TLN kuralları aktif"},
+        {contract_id:"CTR-ZZP-010", provider_type:"ZZP_HOURLY", hour_rate_eur:45, night_premium_pct:19, adr_per_km_eur:0.25, notes:"ZZP saatlik"},
+        {contract_id:"CTR-CHTR-700", provider_type:"CHARTER_FIXED_TOUR", fixed_tour_fee_eur:450, adr_per_km_eur:0.25, notes:"Charter sabit tur"}
+      ],
+      routes: [
+        {route_code:"RTE-AMS-RTM-01", customer_id:"CUST-001", origin:"Amsterdam", destination:"Rotterdam", service_type:"NORMAL", price_model:"FIXED", price_fixed:320, price_per_km:0, price_per_hour:0, min_charge:0, currency:"EUR"},
+        {route_code:"RTE-AMS-BRE-ADR-04", customer_id:"CUST-004", origin:"Amsterdam", destination:"Breda", service_type:"ADR", price_model:"MIXED", price_fixed:150, price_per_km:1.10, price_per_hour:0, min_charge:0, currency:"EUR"},
+        {route_code:"RTE-UTR-AMS-05", customer_id:"CUST-001", origin:"Utrecht", destination:"Amsterdam", service_type:"NORMAL", price_model:"PER_KM", price_fixed:0, price_per_km:1.30, price_per_hour:0, min_charge:0, currency:"EUR"},
+      ],
+      vehicles: [
+        {vehicle_id:"TRK-12", plate:"XX-123-XX", fuel_l_per_100km:33.33, fuel_price_eur_per_l:1.45, active:true}
+      ],
+      tours: [
+        {tour_id:"TOUR-4001", date:"2025-12-30", driver_id:"CHTR-700", vehicle_id:"TRK-12", allocation_method:"KM", fixed_tour_fee_override_eur:0, notes:"Charter fixed örneği"}
+      ],
+      legs: [
+        {leg_id:"LEG-4001-1", tour_id:"TOUR-4001", sequence_no:1, route_code:"RTE-AMS-BRE-ADR-04",
+         start_dt:"2025-12-30T20:30", end_dt:"2025-12-30T23:30", break_min:15, auto_time_calc:true,
+         km:110, hours:0, night_hours:0, sat_hours:0, sun_hours:0, adr_flag:true, other_cost_eur:10, revenue_override_eur:"", notes:""},
+        {leg_id:"LEG-4001-2", tour_id:"TOUR-4001", sequence_no:2, route_code:"RTE-UTR-AMS-05",
+         start_dt:"2025-12-31T00:15", end_dt:"2025-12-31T01:45", break_min:0, auto_time_calc:true,
+         km:60, hours:0, night_hours:0, sat_hours:0, sun_hours:0, adr_flag:false, other_cost_eur:0, revenue_override_eur:"", notes:""}
+      ]
+    }
+  };
+}
+
+/** ---------- State (load/save) ---------- */
+let state = null;
+function loadState(){
+  const raw = localStorage.getItem("nedline_pnl_manual_tln_v2");
+  if (!raw){
+    state = seedData();
+    saveState();
+    return;
+  }
+  try{
+    state = JSON.parse(raw);
+    if (!state.schemas) state.schemas = JSON.parse(JSON.stringify(defaultSchemas));
+    if (!state.settings) state.settings = seedData().settings;
+    if (!state.data) state.data = seedData().data;
+  } catch(e){
+    state = seedData();
+    saveState();
+  }
+}
+function saveState(){
+  localStorage.setItem("nedline_pnl_manual_tln_v2", JSON.stringify(state));
+}
+
+/** ---------- Schema-driven forms ---------- */
+function getSchema(entity){ return state.schemas[entity] || []; }
+
+function normalizeRecord(entity, rec){
+  const schema = getSchema(entity);
+  const out = {...rec};
+  for (const f of schema){
+    if (out[f.key] === undefined || out[f.key] === null || out[f.key] === ""){
+      if (f.default !== undefined) out[f.key] = f.default;
+    }
+  }
+  return out;
+}
+
+function renderForm(entity, record, onSave, onCancel){
+  const schema = getSchema(entity);
+  const rec = normalizeRecord(entity, record || {});
+  const formId = "form_" + uuid();
+
+  const fieldHtml = (f) => {
+    const val = rec[f.key] ?? "";
+    const req = f.required ? "required" : "";
+    const label = esc(f.label);
+
+    if (f.type === "boolean"){
+      const checked = asBool(val) ? "checked" : "";
+      return `
+        <div>
+          <label>
+            <input type="checkbox" data-key="${esc(f.key)}" ${checked}/>
+            ${label}
+          </label>
+        </div>`;
+    }
+
+    if (f.type === "select"){
+      const opts = (f.options || []).map(o => {
+        const sel = String(val) === String(o) ? "selected" : "";
+        return `<option value="${esc(o)}" ${sel}>${esc(o)}</option>`;
+      }).join("");
+      return `
+        <div>
+          <label>${label}${f.required ? " *" : ""}<br/>
+            <select data-key="${esc(f.key)}" ${req}>
+              <option value="">— seçin —</option>
+              ${opts}
+            </select>
+          </label>
+        </div>`;
+    }
+
+    if (f.type === "number"){
+      return `
+        <div>
+          <label>${label}${f.required ? " *" : ""}<br/>
+            <input type="number" step="0.01" data-key="${esc(f.key)}" value="${esc(val)}" ${req}/>
+          </label>
+        </div>`;
+    }
+
+    if (f.type === "date"){
+      return `
+        <div>
+          <label>${label}${f.required ? " *" : ""}<br/>
+            <input type="date" data-key="${esc(f.key)}" value="${esc(val)}" ${req}/>
+          </label>
+        </div>`;
+    }
+
+    if (f.type === "datetime"){
+      return `
+        <div>
+          <label>${label}${f.required ? " *" : ""}<br/>
+            <input type="datetime-local" data-key="${esc(f.key)}" value="${esc(val)}" ${req}/>
+          </label>
+        </div>`;
+    }
+
+    return `
+      <div>
+        <label>${label}${f.required ? " *" : ""}<br/>
+          <input type="text" data-key="${esc(f.key)}" value="${esc(val)}" ${req}/>
+        </label>
+      </div>`;
+  };
+
+  const html = `
+    <div class="card">
+      <div class="row">
+        ${schema.map(fieldHtml).join("")}
+      </div>
+      ${entity === "legs" ? `
+        <div class="muted small" style="margin-top:8px;">
+          <b>Otomatik hesap:</b> start/end girili ve “Saatleri otomatik hesapla” seçiliyse; hours, night_hours, sat_hours, sun_hours otomatik doldurulur.
+          (Gece: 21:00–04:00)
+        </div>` : ``}
+      <hr/>
+      <div class="row">
+        <button class="primary" id="${formId}_save">Kaydet</button>
+        <button id="${formId}_cancel">Vazgeç</button>
+      </div>
+    </div>
+  `;
+
+  const wrap = document.createElement("div");
+  wrap.innerHTML = html;
+
+  function readOut(){
+    const out = {...rec};
+    wrap.querySelectorAll("[data-key]").forEach(el => {
+      const k = el.getAttribute("data-key");
+      if (el.type === "checkbox") out[k] = el.checked;
+      else out[k] = el.value;
+    });
+    // normalize numeric/boolean
+    for (const f of schema){
+      if (f.type === "number") out[f.key] = num(out[f.key]);
+      if (f.type === "boolean") out[f.key] = asBool(out[f.key]);
+    }
+    return out;
+  }
+
+  function applyAutoLegTimes(){
+    if (entity !== "legs") return;
+    const out = readOut();
+    if (!asBool(out.auto_time_calc)) return;
+
+    const m = computeTimeMetrics(out.start_dt, out.end_dt, out.break_min);
+    if (!m) return;
+
+    // write back into inputs
+    const setVal = (key, v) => {
+      const el = wrap.querySelector(`[data-key="${key}"]`);
+      if (el) el.value = String(v);
+    };
+    setVal("hours", m.total_hours.toFixed(2));
+    setVal("night_hours", m.night_hours.toFixed(2));
+    setVal("sat_hours", m.sat_hours.toFixed(2));
+    setVal("sun_hours", m.sun_hours.toFixed(2));
+  }
+
+  setTimeout(() => {
+    wrap.querySelector("#"+formId+"_save").addEventListener("click", () => {
+      const out = readOut();
+
+      // final auto-calc at save time
+      if (entity === "legs" && asBool(out.auto_time_calc)){
+        const m = computeTimeMetrics(out.start_dt, out.end_dt, out.break_min);
+        if (m){
+          out.hours = num(m.total_hours.toFixed(2));
+          out.night_hours = num(m.night_hours.toFixed(2));
+          out.sat_hours = num(m.sat_hours.toFixed(2));
+          out.sun_hours = num(m.sun_hours.toFixed(2));
+        }
+      }
+
+      for (const f of schema){
+        if (f.required){
+          const v = out[f.key];
+          if (v === undefined || v === null || String(v).trim() === ""){
+            alert("Zorunlu alan eksik: " + f.label);
+            return;
+          }
+        }
+      }
+      onSave(out);
+    });
+
+    wrap.querySelector("#"+formId+"_cancel").addEventListener("click", onCancel);
+
+    if (entity === "legs"){
+      ["start_dt","end_dt","break_min","auto_time_calc"].forEach(k => {
+        const el = wrap.querySelector(`[data-key="${k}"]`);
+        if (el) el.addEventListener("input", applyAutoLegTimes);
+      });
+      applyAutoLegTimes();
+    }
+  }, 0);
+
+  return wrap;
+}
+
+/** ---------- Data helpers ---------- */
+function list(entity){ return state.data[entity] || []; }
+function setList(entity, arr){ state.data[entity] = arr; saveState(); }
+function upsert(entity, keyField, record){
+  const arr = list(entity).slice();
+  const idx = arr.findIndex(x => String(x[keyField]) === String(record[keyField]));
+  if (idx >= 0) arr[idx] = record;
+  else arr.push(record);
+  setList(entity, arr);
+}
+function remove(entity, keyField, keyValue){
+  const arr = list(entity).filter(x => String(x[keyField]) !== String(keyValue));
+  setList(entity, arr);
+}
+function mapBy(entity, keyField){
+  const m = new Map();
+  for (const r of list(entity)) m.set(String(r[keyField]), r);
+  return m;
+}
+
+/** ---------- P&L Logic ---------- */
+function computeRevenueForLeg(leg, route){
+  const override = num(leg.revenue_override_eur);
+  if (override > 0) return override;
+
+  const model = String(route?.price_model || "FIXED").toUpperCase().trim();
+  const km = num(leg.km);
+  const hours = num(leg.hours);
+
+  const fixed = num(route?.price_fixed);
+  const perKm = num(route?.price_per_km);
+  const perHour = num(route?.price_per_hour);
+  const minCharge = num(route?.min_charge);
+
+  let rev = 0;
+  if (model === "FIXED") rev = fixed;
+  else if (model === "PER_KM") rev = perKm * km;
+  else if (model === "PER_HOUR") rev = perHour * hours;
+  else if (model === "MIXED") rev = fixed + perKm * km + perHour * hours;
+  else rev = fixed;
+
+  if (minCharge > 0) rev = Math.max(rev, minCharge);
+  return rev;
+}
+
+function computeFuelCost(leg, vehicle){
+  const km = num(leg.km);
+  const fuelPrice = (vehicle && vehicle.fuel_price_eur_per_l !== "" && vehicle.fuel_price_eur_per_l !== undefined)
+    ? num(vehicle.fuel_price_eur_per_l) : num(state.settings.fuelPrice);
+  const fuelL100 = (vehicle && vehicle.fuel_l_per_100km !== "" && vehicle.fuel_l_per_100km !== undefined)
+    ? num(vehicle.fuel_l_per_100km) : num(state.settings.fuelL100);
+  const liters = (km * fuelL100) / 100;
+  return liters * fuelPrice;
+}
+
+function getContractForDriver(driver){
+  const contracts = mapBy("contracts", "contract_id");
+  const cid = String(driver?.contract_id || "");
+  if (cid && contracts.has(cid)) return contracts.get(cid);
+  const pt = String(driver?.provider_type || "");
+  return list("contracts").find(x => String(x.provider_type||"") === pt) || null;
+}
+
+function getAdrPerKm(contract){
+  if (contract && contract.adr_per_km_eur !== "" && contract.adr_per_km_eur !== undefined) return num(contract.adr_per_km_eur);
+  return num(state.settings.adrPerKm);
+}
+
+function getNightPct(contract){
+  if (contract && contract.night_premium_pct !== "" && contract.night_premium_pct !== undefined) return num(contract.night_premium_pct);
+  return num(state.settings.nightPct);
+}
+
+function computeDriverCostBase(legComp, driver, contract){
+  const pt = String(driver?.provider_type || "").toUpperCase().trim();
+  const hours = num(legComp.hours);
+  const km = num(legComp.km);
+
+  const employeeDefault = num(state.settings.employeeDefaultHourCost);
+  const hourRate = (contract && contract.hour_rate_eur !== "" && contract.hour_rate_eur !== undefined)
+    ? num(contract.hour_rate_eur) : employeeDefault;
+  const kmRate = (contract && contract.km_rate_eur !== "" && contract.km_rate_eur !== undefined)
+    ? num(contract.km_rate_eur) : 0;
+
+  let base = 0;
+  let isFixedTour = false;
+  let isHourBased = false;
+
+  if (pt === "CHARTER_FIXED_TOUR"){
+    isFixedTour = true;
+    base = 0;
+  } else if (pt === "CHARTER_PER_KM"){
+    base = kmRate * km;
+  } else if (pt === "CHARTER_PER_HOUR" || pt === "ZZP_HOURLY" || pt === "EMPLOYEE_TLN"){
+    isHourBased = true;
+    base = hourRate * hours;
+  } else {
+    isHourBased = true;
+    base = hourRate * hours;
+  }
+
+  return { pt, hourRate, kmRate, base, isFixedTour, isHourBased };
+}
+
+function allocateFixedTourCost(tour, legsComp, driver, contract){
+  const pt = String(driver?.provider_type||"").toUpperCase().trim();
+  if (pt !== "CHARTER_FIXED_TOUR") return;
+
+  const override = num(tour.fixed_tour_fee_override_eur);
+  const fee = override > 0 ? override : num(contract?.fixed_tour_fee_eur);
+
+  const method = String(tour.allocation_method || state.settings.fixedTourAllocation || "KM").toUpperCase().trim();
+
+  const denom = (method === "HOURS")
+    ? legsComp.reduce((a,b)=>a+num(b.hours),0)
+    : (method === "REVENUE")
+      ? legsComp.reduce((a,b)=>a+num(b.revenue),0)
+      : legsComp.reduce((a,b)=>a+num(b.km),0);
+
+  const safeDenom = denom > 0 ? denom : 1e-9;
+
+  for (const leg of legsComp){
+    const w = (method === "HOURS") ? num(leg.hours)
+            : (method === "REVENUE") ? num(leg.revenue)
+            : num(leg.km);
+    const alloc = fee * (w / safeDenom);
+    leg.driver_cost += alloc;
+    leg.fixed_alloc_eur = alloc;
+  }
+}
+
+function computeAll(){
+  const drivers = mapBy("drivers","driver_id");
+  const routes = mapBy("routes","route_code");
+  const vehicles = mapBy("vehicles","vehicle_id");
+  const tours = list("tours").slice();
+  const legs = list("legs").slice();
+
+  // group legs by tour
+  const legsByTour = new Map();
+  for (const l of legs){
+    const tid = String(l.tour_id || "");
+    if (!legsByTour.has(tid)) legsByTour.set(tid, []);
+    legsByTour.get(tid).push(l);
+  }
+  for (const [k, arr] of legsByTour.entries()){
+    arr.sort((a,b)=> num(a.sequence_no) - num(b.sequence_no));
+  }
+
+  // 1) compute per-leg (without fixed allocation and without TLN overtime)
+  const computedLegs = [];
+  const computedTours = [];
+  const routeAgg = new Map();
+
+  for (const t of tours){
+    const tid = String(t.tour_id);
+    const driver = drivers.get(String(t.driver_id)) || null;
+    const contract = getContractForDriver(driver);
+    const vehicle = vehicles.get(String(t.vehicle_id)) || null;
+
+    const tourLegs = (legsByTour.get(tid) || []).map(x => ({...x}));
+
+    const tourLegsComp = [];
+    for (const l of tourLegs){
+      const route = routes.get(String(l.route_code)) || null;
+
+      // If auto_time_calc true, recompute metrics on the fly (safety)
+      let hours = num(l.hours);
+      let nightH = num(l.night_hours);
+      let satH = num(l.sat_hours);
+      let sunH = num(l.sun_hours);
+
+      if (asBool(l.auto_time_calc)){
+        const m = computeTimeMetrics(l.start_dt, l.end_dt, l.break_min);
+        if (m){
+          hours = m.total_hours;
+          nightH = m.night_hours;
+          satH = m.sat_hours;
+          sunH = m.sun_hours;
+        } else {
+          // fallback: if no start/end, weekend based on tour date
+          const dow = new Date((t.date||"") + "T00:00:00").getDay();
+          if (dow === 6) satH = hours;
+          if (dow === 0) sunH = hours;
+        }
+      }
+
+      const km = num(l.km);
+      const revenue = computeRevenueForLeg({...l, hours, km}, route);
+      const fuel = computeFuelCost({km}, vehicle);
+      const other = num(l.other_cost_eur);
+      const adrFlag = asBool(l.adr_flag) || String(route?.service_type||"").toUpperCase().includes("ADR");
+      const adr = adrFlag ? (getAdrPerKm(contract) * km) : 0;
+
+      const base = computeDriverCostBase({hours, km}, driver, contract);
+      let driverCost = base.isFixedTour ? 0 : base.base;
+
+      // Night premium (hour-based profiles)
+      if (base.isHourBased && nightH > 0){
+        driverCost += base.hourRate * nightH * (getNightPct(contract)/100);
+      }
+
+      // TLN weekend premiums
+      if (base.pt === "EMPLOYEE_TLN"){
+        const satPct = (contract && contract.tln_sat_pct !== undefined) ? num(contract.tln_sat_pct) : 50;
+        const sunPct = (contract && contract.tln_sun_pct !== undefined) ? num(contract.tln_sun_pct) : 100;
+        if (satH > 0) driverCost += base.hourRate * satH * (satPct/100);
+        if (sunH > 0) driverCost += base.hourRate * sunH * (sunPct/100);
+      }
+
+      tourLegsComp.push({
+        date: t.date,
+        week_key: isoWeekKey(t.date),
+        tour_id: tid,
+        driver_id: t.driver_id,
+        vehicle_id: t.vehicle_id || "",
+        leg_id: l.leg_id,
+        sequence_no: num(l.sequence_no),
+        route_code: l.route_code,
+        start_dt: l.start_dt || "",
+        end_dt: l.end_dt || "",
+        break_min: num(l.break_min),
+        auto_time_calc: asBool(l.auto_time_calc),
+        km,
+        hours,
+        night_hours: nightH,
+        sat_hours: satH,
+        sun_hours: sunH,
+        adr_flag: adrFlag,
+        revenue,
+        fuel_cost: fuel,
+        adr_cost: adr,
+        other_cost: other,
+        driver_cost: driverCost,
+        fixed_alloc_eur: 0,
+        overtime_hours: 0,
+        base_hour_rate: base.hourRate,
+        provider_type: String(driver?.provider_type || ""),
+        notes: l.notes || ""
+      });
+    }
+
+    // 2) fixed tour allocation
+    if (String(driver?.provider_type||"").toUpperCase().trim() === "CHARTER_FIXED_TOUR"){
+      allocateFixedTourCost(t, tourLegsComp, driver, contract);
+    }
+
+    computedLegs.push(...tourLegsComp);
+  }
+
+  // 3) TLN overtime allocation (weekly per driver)
+  // Rule: after 40h/week => overtime premium +30% on overtime hours (incremental allocation across legs)
+  const tlnLegs = computedLegs.filter(x => String(x.provider_type).toUpperCase().trim() === "EMPLOYEE_TLN");
+  const byDriverWeek = new Map();
+
+  for (const l of tlnLegs){
+    const k = `${l.driver_id}|${l.week_key}`;
+    if (!byDriverWeek.has(k)) byDriverWeek.set(k, []);
+    byDriverWeek.get(k).push(l);
+  }
+
+  for (const [k, arr] of byDriverWeek.entries()){
+    arr.sort((a,b) => (a.date||"").localeCompare(b.date||"") || (a.start_dt||"").localeCompare(b.start_dt||"") || (a.sequence_no - b.sequence_no));
+    const driverId = arr[0]?.driver_id;
+    const driver = mapBy("drivers","driver_id").get(String(driverId)) || null;
+    const contract = getContractForDriver(driver);
+    const threshold = (contract && contract.tln_overtime_after_hours !== undefined) ? num(contract.tln_overtime_after_hours) : 40;
+    const otPct = (contract && contract.tln_overtime_pct !== undefined) ? num(contract.tln_overtime_pct) : 30;
+
+    let cum = 0;
+    for (const leg of arr){
+      const h = num(leg.hours);
+      const prevCum = cum;
+      const newCum = cum + h;
+
+      // incremental overtime for this leg
+      const otInc = Math.max(0, (newCum - threshold)) - Math.max(0, (prevCum - threshold));
+      const overtime = Math.max(0, Math.min(h, otInc));
+
+      leg.overtime_hours = overtime;
+
+      // add overtime premium on overtime hours
+      if (overtime > 0){
+        leg.driver_cost += leg.base_hour_rate * overtime * (otPct/100);
+      }
+
+      cum = newCum;
+    }
+  }
+
+  // 4) finalize overhead + profit and aggregate
+  const overheadPct = num(state.settings.overheadPct);
+
+  for (const leg of computedLegs){
+    const direct = leg.driver_cost + leg.fuel_cost + leg.adr_cost + leg.other_cost;
+    const overhead = overheadPct > 0 ? direct * overheadPct / 100 : 0;
+    const totalCost = direct + overhead;
+    const profit = leg.revenue - totalCost;
+    const margin = leg.revenue > 0 ? (profit / leg.revenue * 100) : 0;
+
+    leg.overhead_cost = overhead;
+    leg.total_cost = totalCost;
+    leg.profit = profit;
+    leg.margin_pct = margin;
+
+    const rc = String(leg.route_code);
+    if (!routeAgg.has(rc)){
+      routeAgg.set(rc, {route_code:rc, count:0, km:0, revenue:0, cost:0, profit:0});
+    }
+    const a = routeAgg.get(rc);
+    a.count += 1;
+    a.km += leg.km;
+    a.revenue += leg.revenue;
+    a.cost += leg.total_cost;
+    a.profit += leg.profit;
+  }
+
+  // 5) tour summary
+  const toursMap = mapBy("tours","tour_id");
+  const byTour = new Map();
+  for (const l of computedLegs){
+    if (!byTour.has(l.tour_id)) byTour.set(l.tour_id, []);
+    byTour.get(l.tour_id).push(l);
+  }
+
+  const driversMap = mapBy("drivers","driver_id");
+  for (const [tid, arr] of byTour.entries()){
+    const t = toursMap.get(String(tid)) || {};
+    const d = driversMap.get(String(t.driver_id)) || {};
+    const rev = arr.reduce((s,x)=>s+x.revenue,0);
+    const cost = arr.reduce((s,x)=>s+x.total_cost,0);
+    const prof = arr.reduce((s,x)=>s+x.profit,0);
+    const marg = rev>0 ? (prof/rev*100) : 0;
+    computedTours.push({
+      tour_id: tid,
+      date: t.date || (arr[0]?.date || ""),
+      driver_id: t.driver_id || (arr[0]?.driver_id || ""),
+      provider_type: d.provider_type || "",
+      revenue: rev, cost: cost, profit: prof, margin_pct: marg,
+      allocation_method: t.allocation_method || state.settings.fixedTourAllocation
+    });
+  }
+
+  const routeSummary = Array.from(routeAgg.values()).map(x => ({
+    ...x,
+    margin_pct: x.revenue > 0 ? (x.profit / x.revenue * 100) : 0
+  }));
+
+  computedTours.sort((a,b)=>a.profit - b.profit);
+  routeSummary.sort((a,b)=>a.profit - b.profit);
+  computedLegs.sort((a,b)=> (a.date||"").localeCompare(b.date||"") || (a.tour_id||"").localeCompare(b.tour_id||"") || (a.sequence_no - b.sequence_no));
+
+  const totals = {
+    legs: computedLegs.length,
+    revenue: computedLegs.reduce((a,b)=>a+b.revenue,0),
+    profit: computedLegs.reduce((a,b)=>a+b.profit,0),
+    neg_legs: computedLegs.filter(x=>x.profit<0).length
+  };
+
+  return {computedLegs, computedTours, routeSummary, totals};
+}
+
+/** ---------- Views / Tabs ---------- */
+const TABS = [
+  {id:"dashboard", label:"Dashboard"},
+  {id:"drivers", label:"Sürücüler"},
+  {id:"contracts", label:"Sözleşmeler"},
+  {id:"routes", label:"Rotalar"},
+  {id:"vehicles", label:"Araçlar"},
+  {id:"tours", label:"Turlar & Plan"},
+  {id:"settings", label:"Ayarlar"},
+  {id:"schema", label:"Alan Yönetimi"}
+];
+
+let activeTab = "dashboard";
+let selectedTourId = null;
+
+function renderTabs(){
+  const el = document.getElementById("tabs");
+  el.innerHTML = "";
+  for (const t of TABS){
+    const b = document.createElement("button");
+    b.textContent = t.label;
+    b.className = (activeTab === t.id) ? "active" : "";
+    b.addEventListener("click", () => {
+      activeTab = t.id;
+      render();
+    });
+    el.appendChild(b);
+  }
+}
+
+function render(){
+  renderTabs();
+  const view = document.getElementById("view");
+  view.innerHTML = "";
+
+  if (activeTab === "dashboard") view.appendChild(renderDashboard());
+  if (activeTab === "drivers") view.appendChild(renderEntityCRUD("drivers","driver_id","Sürücüler"));
+  if (activeTab === "contracts") view.appendChild(renderEntityCRUD("contracts","contract_id","Sözleşmeler"));
+  if (activeTab === "routes") view.appendChild(renderEntityCRUD("routes","route_code","Rotalar"));
+  if (activeTab === "vehicles") view.appendChild(renderEntityCRUD("vehicles","vehicle_id","Araçlar"));
+  if (activeTab === "tours") view.appendChild(renderToursAndLegs());
+  if (activeTab === "settings") view.appendChild(renderSettings());
+  if (activeTab === "schema") view.appendChild(renderSchemaManager());
+}
+
+function renderDashboard(){
+  const {computedLegs, computedTours, routeSummary, totals} = computeAll();
+
+  const card = document.createElement("div");
+  card.className = "card";
+  const id = uuid();
+
+  card.innerHTML = `
+    <h3>Dashboard</h3>
+    <div class="row">
+      <span class="pill">Satır: ${totals.legs}</span>
+      <span class="pill">Toplam Gelir: €${fmt(totals.revenue)}</span>
+      <span class="pill">Toplam Kâr: €${fmt(totals.profit)}</span>
+      <span class="pill">Zarar eden satır: ${totals.neg_legs}</span>
+    </div>
+    <hr/>
+    <div class="row">
+      <label>Zarar Filtre<br/>
+        <select id="${id}_neg">
+          <option value="ALL">Tümü</option>
+          <option value="NEG">Sadece zarar</option>
+        </select>
+      </label>
+      <button id="${id}_exportLegs">Detay CSV Export</button>
+    </div>
+
+    <div class="grid2" style="margin-top:12px;">
+      <div>
+        <h4>Tur Bazında (en kötüden iyiye)</h4>
+        <div class="scroller">
+          <table>
+            <thead>
+              <tr>
+                <th>Tur</th><th>Tarih</th><th>Sürücü</th><th>Profil</th>
+                <th class="right">Gelir</th><th class="right">Maliyet</th><th class="right">Kâr</th><th class="right">Marj%</th>
+              </tr>
+            </thead>
+            <tbody id="${id}_tourBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h4>Rota Bazında (en kötüden iyiye)</h4>
+        <div class="scroller">
+          <table>
+            <thead>
+              <tr>
+                <th>Rota</th><th class="right">Adet</th><th class="right">KM</th>
+                <th class="right">Gelir</th><th class="right">Maliyet</th><th class="right">Kâr</th><th class="right">Marj%</th>
+              </tr>
+            </thead>
+            <tbody id="${id}_routeBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <hr/>
+    <h4>Satır Bazında Detay</h4>
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr>
+            <th>Tarih</th><th>Tur</th><th>Sürücü</th><th>Rota</th>
+            <th class="right">KM</th><th class="right">Saat</th>
+            <th class="right">Gece</th><th class="right">Cts</th><th class="right">Paz</th><th class="right">OT</th>
+            <th class="right">Gelir</th>
+            <th class="right">Sürücü/Charter</th>
+            <th class="right">Yakıt</th>
+            <th class="right">ADR</th>
+            <th class="right">Diğer</th>
+            <th class="right">Overhead</th>
+            <th class="right">Kâr</th>
+            <th class="right">Marj%</th>
+          </tr>
+        </thead>
+        <tbody id="${id}_legBody"></tbody>
+      </table>
+    </div>
+  `;
+
+  function fill(){
+    const negMode = card.querySelector("#"+id+"_neg").value;
+    const legsToShow = (negMode === "NEG") ? computedLegs.filter(x=>x.profit<0) : computedLegs;
+
+    const tBody = card.querySelector("#"+id+"_tourBody");
+    tBody.innerHTML = "";
+    for (const t of computedTours){
+      const tr = document.createElement("tr");
+      if (t.profit < 0) tr.className = "neg";
+      tr.innerHTML = `
+        <td>${esc(t.tour_id)}</td>
+        <td>${esc(t.date||"")}</td>
+        <td>${esc(t.driver_id||"")}</td>
+        <td>${esc(t.provider_type||"")}</td>
+        <td class="right">€${fmt(t.revenue)}</td>
+        <td class="right">€${fmt(t.cost)}</td>
+        <td class="right">€${fmt(t.profit)}</td>
+        <td class="right">${fmt1(t.margin_pct)}</td>
+      `;
+      tBody.appendChild(tr);
+    }
+
+    const rBody = card.querySelector("#"+id+"_routeBody");
+    rBody.innerHTML = "";
+    for (const r of routeSummary){
+      const tr = document.createElement("tr");
+      if (r.profit < 0) tr.className = "neg";
+      tr.innerHTML = `
+        <td>${esc(r.route_code)}</td>
+        <td class="right">${r.count}</td>
+        <td class="right">${fmt1(r.km)}</td>
+        <td class="right">€${fmt(r.revenue)}</td>
+        <td class="right">€${fmt(r.cost)}</td>
+        <td class="right">€${fmt(r.profit)}</td>
+        <td class="right">${fmt1(r.margin_pct)}</td>
+      `;
+      rBody.appendChild(tr);
+    }
+
+    const lBody = card.querySelector("#"+id+"_legBody");
+    lBody.innerHTML = "";
+    for (const x of legsToShow){
+      const tr = document.createElement("tr");
+      tr.className = x.profit < 0 ? "neg" : "ok";
+      tr.innerHTML = `
+        <td>${esc(x.date||"")}</td>
+        <td>${esc(x.tour_id||"")}</td>
+        <td>${esc(x.driver_id||"")}</td>
+        <td>${esc(x.route_code||"")}</td>
+        <td class="right">${fmt1(x.km)}</td>
+        <td class="right">${fmt1(x.hours)}</td>
+        <td class="right">${fmt1(x.night_hours)}</td>
+        <td class="right">${fmt1(x.sat_hours)}</td>
+        <td class="right">${fmt1(x.sun_hours)}</td>
+        <td class="right">${fmt1(x.overtime_hours)}</td>
+        <td class="right">€${fmt(x.revenue)}</td>
+        <td class="right">€${fmt(x.driver_cost)}</td>
+        <td class="right">€${fmt(x.fuel_cost)}</td>
+        <td class="right">€${fmt(x.adr_cost)}</td>
+        <td class="right">€${fmt(x.other_cost)}</td>
+        <td class="right">€${fmt(x.overhead_cost)}</td>
+        <td class="right">€${fmt(x.profit)}</td>
+        <td class="right">${fmt1(x.margin_pct)}</td>
+      `;
+      lBody.appendChild(tr);
+    }
+  }
+
+  fill();
+  card.querySelector("#"+id+"_neg").addEventListener("change", fill);
+
+  card.querySelector("#"+id+"_exportLegs").addEventListener("click", () => {
+    const rows = computedLegs.map(x => ({
+      date: x.date,
+      week_key: x.week_key,
+      tour_id: x.tour_id,
+      driver_id: x.driver_id,
+      provider_type: x.provider_type,
+      leg_id: x.leg_id,
+      sequence_no: x.sequence_no,
+      route_code: x.route_code,
+      start_dt: x.start_dt,
+      end_dt: x.end_dt,
+      break_min: x.break_min,
+      km: x.km,
+      hours: x.hours,
+      night_hours: x.night_hours,
+      sat_hours: x.sat_hours,
+      sun_hours: x.sun_hours,
+      overtime_hours: x.overtime_hours,
+      revenue_eur: x.revenue,
+      driver_cost_eur: x.driver_cost,
+      fuel_cost_eur: x.fuel_cost,
+      adr_cost_eur: x.adr_cost,
+      other_cost_eur: x.other_cost,
+      overhead_cost_eur: x.overhead_cost,
+      total_cost_eur: x.total_cost,
+      profit_eur: x.profit,
+      margin_pct: x.margin_pct
+    }));
+    downloadText(toCSV(rows), "pnl_legs.csv", "text/csv;charset=utf-8");
+  });
+
+  const hint = document.createElement("div");
+  hint.className = "card hint";
+  hint.innerHTML = `
+    <div class="small">
+      <b>Önerilen kullanım sırası</b><br/>
+      1) <span class="kbd">Sözleşmeler</span>: TLN/ZZP/Charter ücretleri ve TLN % oranlarını girin.<br/>
+      2) <span class="kbd">Sürücüler</span>: sürücüleri ekleyip sözleşmeye bağlayın.<br/>
+      3) <span class="kbd">Rotalar</span>: satış fiyat modelini tanımlayın.<br/>
+      4) <span class="kbd">Turlar & Plan</span>: tur açıp satırlara <span class="kbd">start_dt/end_dt</span> girin (gece/haftasonu otomatik).<br/>
+      5) Dashboard: zarar eden tur/rota/satırları izleyin.
+    </div>
+  `;
+
+  const wrap = document.createElement("div");
+  wrap.appendChild(hint);
+  wrap.appendChild(card);
+  return wrap;
+}
+
+/** ---------- Generic CRUD ---------- */
+function renderEntityCRUD(entity, keyField, title){
+  const schema = getSchema(entity);
+  const card = document.createElement("div");
+  card.className = "card";
+  const id = uuid();
+
+  card.innerHTML = `
+    <div class="row">
+      <h3 style="margin:0;">${esc(title)}</h3>
+      <div style="flex:1"></div>
+      <button id="${id}_export">CSV Export</button>
+      <button class="primary" id="${id}_add">Yeni Ekle</button>
+    </div>
+    <div class="muted small">Kendi alanlarınızı eklemek için “Alan Yönetimi” sekmesini kullanabilirsiniz.</div>
+    <div class="scroller" style="margin-top:10px;">
+      <table>
+        <thead><tr>${schema.map(f => `<th>${esc(f.label)}</th>`).join("")}<th>İşlem</th></tr></thead>
+        <tbody id="${id}_body"></tbody>
+      </table>
+    </div>
+    <div id="${id}_form"></div>
+  `;
+
+  const body = card.querySelector("#"+id+"_body");
+  const formSlot = card.querySelector("#"+id+"_form");
+
+  function renderRows(){
+    body.innerHTML = "";
+    const rows = list(entity).slice();
+    rows.sort((a,b)=> String(a[keyField]||"").localeCompare(String(b[keyField]||"")));
+    for (const r of rows){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        ${schema.map(f => `<td>${esc(r[f.key] ?? "")}</td>`).join("")}
+        <td>
+          <button data-edit="${esc(r[keyField])}">Düzenle</button>
+          <button class="danger" data-del="${esc(r[keyField])}">Sil</button>
+        </td>
+      `;
+      body.appendChild(tr);
+    }
+  }
+
+  function openForm(existing){
+    formSlot.innerHTML = "";
+    const record = existing ? {...existing} : {};
+    const form = renderForm(entity, record, (out) => {
+      upsert(entity, keyField, out);
+      formSlot.innerHTML = "";
+      renderRows();
+    }, () => formSlot.innerHTML = "");
+    formSlot.appendChild(form);
+  }
+
+  card.addEventListener("click", (e) => {
+    const editKey = e.target?.getAttribute?.("data-edit");
+    const delKey = e.target?.getAttribute?.("data-del");
+    if (editKey){
+      const rec = list(entity).find(x => String(x[keyField]) === String(editKey));
+      openForm(rec);
+    }
+    if (delKey){
+      if (!confirm("Silmek istediğinize emin misiniz?")) return;
+      remove(entity, keyField, delKey);
+      renderRows();
+    }
+  });
+
+  card.querySelector("#"+id+"_add").addEventListener("click", () => openForm(null));
+  card.querySelector("#"+id+"_export").addEventListener("click", () => {
+    downloadText(toCSV(list(entity).map(r => ({...r}))), `${entity}.csv`, "text/csv;charset=utf-8");
+  });
+
+  renderRows();
+  return card;
+}
+
+/** ---------- Tours + Legs (nested) ---------- */
+function renderToursAndLegs(){
+  const card = document.createElement("div");
+  card.className = "card";
+  const id = uuid();
+
+  const tours = list("tours").slice().sort((a,b)=> String(a.date||"").localeCompare(String(b.date||"")) || String(a.tour_id||"").localeCompare(String(b.tour_id||"")));
+  if (!selectedTourId && tours.length) selectedTourId = tours[0].tour_id;
+
+  card.innerHTML = `
+    <h3>Turlar & Plan</h3>
+    <div class="split" style="margin-top:8px;">
+      <div>
+        <div class="row">
+          <label>Tur Seç<br/>
+            <select id="${id}_tourSel"></select>
+          </label>
+          <button class="primary" id="${id}_tourAdd">Yeni Tur</button>
+          <button id="${id}_tourEdit">Tur Düzenle</button>
+          <button class="danger" id="${id}_tourDel">Tur Sil</button>
+        </div>
+
+        <div id="${id}_tourForm"></div>
+
+        <hr/>
+        <div class="row">
+          <button class="primary" id="${id}_legAdd">Tur Satırı Ekle</button>
+          <button id="${id}_legsExport">Tur Satırları CSV Export</button>
+        </div>
+        <div id="${id}_legForm"></div>
+
+        <div class="scroller" style="margin-top:10px;">
+          <table id="${id}_legTbl">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <div class="hint">
+          <div class="small">
+            <b>Gece / Hafta sonu otomatik</b><br/>
+            Satırda <span class="kbd">start_dt</span> ve <span class="kbd">end_dt</span> girerseniz:<br/>
+            - Gece saat (21:00–04:00)<br/>
+            - Cumartesi/Pazar saat<br/>
+            otomatik çıkar.<br/><br/>
+            <b>TLN Overtime</b><br/>
+            Aynı sürücü için aynı ISO hafta içinde 40 saati aşan kısımda +%30 otomatik uygulanır.
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <h4>Seçili Tur – Hesap Özeti</h4>
+          <div id="${id}_tourSummary" class="muted">Tur seçin.</div>
+          <hr/>
+          <h4>Seçili Tur – Satır Bazında P&L</h4>
+          <div class="scroller">
+            <table>
+              <thead>
+                <tr>
+                  <th>Sıra</th><th>Rota</th>
+                  <th class="right">KM</th><th class="right">Saat</th>
+                  <th class="right">Gece</th><th class="right">Cts</th><th class="right">Paz</th><th class="right">OT</th>
+                  <th class="right">Gelir</th>
+                  <th class="right">Sürücü/Charter</th>
+                  <th class="right">Yakıt</th>
+                  <th class="right">ADR</th>
+                  <th class="right">Diğer</th>
+                  <th class="right">Overhead</th>
+                  <th class="right">Kâr</th>
+                </tr>
+              </thead>
+              <tbody id="${id}_pnlBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `;
+
+  const tourSel = card.querySelector("#"+id+"_tourSel");
+  const tourFormSlot = card.querySelector("#"+id+"_tourForm");
+  const legFormSlot = card.querySelector("#"+id+"_legForm");
+
+  function refreshTourSelect(){
+    tourSel.innerHTML = "";
+    const all = list("tours").slice().sort((a,b)=> String(a.date||"").localeCompare(String(b.date||"")) || String(a.tour_id||"").localeCompare(String(b.tour_id||"")));
+    for (const t of all){
+      const opt = document.createElement("option");
+      opt.value = t.tour_id;
+      opt.textContent = `${t.date || ""} | ${t.tour_id} | ${t.driver_id}`;
+      if (String(t.tour_id) === String(selectedTourId)) opt.selected = true;
+      tourSel.appendChild(opt);
+    }
+    if (!all.length) selectedTourId = null;
+  }
+
+  function renderLegTable(){
+    const schema = getSchema("legs");
+    const thead = card.querySelector("#"+id+"_legTbl thead");
+    const tbody = card.querySelector("#"+id+"_legTbl tbody");
+    thead.innerHTML = `<tr>${schema.map(f => `<th>${esc(f.label)}</th>`).join("")}<th>İşlem</th></tr>`;
+    tbody.innerHTML = "";
+
+    const legs = list("legs").filter(x => String(x.tour_id) === String(selectedTourId))
+      .slice().sort((a,b)=> num(a.sequence_no)-num(b.sequence_no));
+
+    for (const r of legs){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        ${schema.map(f => `<td>${esc(r[f.key] ?? "")}</td>`).join("")}
+        <td>
+          <button data-leg-edit="${esc(r.leg_id)}">Düzenle</button>
+          <button class="danger" data-leg-del="${esc(r.leg_id)}">Sil</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  function openTourForm(existing){
+    tourFormSlot.innerHTML = "";
+    const form = renderForm("tours", existing || {tour_id:"", date:"", driver_id:"", vehicle_id:""}, (out) => {
+      upsert("tours", "tour_id", out);
+      selectedTourId = out.tour_id;
+      tourFormSlot.innerHTML = "";
+      refreshTourSelect();
+      renderLegTable();
+      renderSelectedTourPnl();
+    }, () => tourFormSlot.innerHTML = "");
+    tourFormSlot.appendChild(form);
+  }
+
+  function openLegForm(existing){
+    legFormSlot.innerHTML = "";
+    const base = existing ? {...existing} : {
+      leg_id: "LEG-" + uuid().slice(3,10).toUpperCase(),
+      tour_id: selectedTourId || "",
+      sequence_no: 1,
+      route_code: "",
+      start_dt: "",
+      end_dt: "",
+      break_min: 0,
+      auto_time_calc: true,
+      km: 0,
+      hours: 0,
+      night_hours: 0,
+      sat_hours: 0,
+      sun_hours: 0,
+      adr_flag: false,
+      other_cost_eur: 0,
+      revenue_override_eur: "",
+      notes: ""
+    };
+    const form = renderForm("legs", base, (out) => {
+      upsert("legs", "leg_id", out);
+      legFormSlot.innerHTML = "";
+      renderLegTable();
+      renderSelectedTourPnl();
+    }, () => legFormSlot.innerHTML = "");
+    legFormSlot.appendChild(form);
+  }
+
+  function renderSelectedTourPnl(){
+    const summaryEl = card.querySelector("#"+id+"_tourSummary");
+    const tbody = card.querySelector("#"+id+"_pnlBody");
+    tbody.innerHTML = "";
+
+    if (!selectedTourId){
+      summaryEl.textContent = "Tur yok. Önce tur ekleyin.";
+      return;
+    }
+
+    const {computedLegs, computedTours} = computeAll();
+    const t = computedTours.find(x => String(x.tour_id) === String(selectedTourId));
+    const legs = computedLegs.filter(x => String(x.tour_id) === String(selectedTourId)).sort((a,b)=>a.sequence_no-b.sequence_no);
+
+    if (!t){
+      summaryEl.textContent = "Seçili tur için hesap bulunamadı (satır yok olabilir).";
+      return;
+    }
+
+    summaryEl.innerHTML = `
+      <div class="row">
+        <span class="pill">Tur: ${esc(t.tour_id)}</span>
+        <span class="pill">Tarih: ${esc(t.date||"")}</span>
+        <span class="pill">Sürücü: ${esc(t.driver_id||"")}</span>
+        <span class="pill">Profil: ${esc(t.provider_type||"")}</span>
+        <span class="pill">Gelir: €${fmt(t.revenue)}</span>
+        <span class="pill">Maliyet: €${fmt(t.cost)}</span>
+        <span class="pill">Kâr: €${fmt(t.profit)}</span>
+        <span class="pill">Marj: ${fmt1(t.margin_pct)}%</span>
+      </div>
+      <div class="muted small" style="margin-top:6px;">
+        Sabit tur dağıtım: ${esc(t.allocation_method||"")}
+      </div>
+    `;
+
+    for (const x of legs){
+      const tr = document.createElement("tr");
+      tr.className = x.profit < 0 ? "neg" : "ok";
+      tr.innerHTML = `
+        <td>${x.sequence_no}</td>
+        <td>${esc(x.route_code)}</td>
+        <td class="right">${fmt1(x.km)}</td>
+        <td class="right">${fmt1(x.hours)}</td>
+        <td class="right">${fmt1(x.night_hours)}</td>
+        <td class="right">${fmt1(x.sat_hours)}</td>
+        <td class="right">${fmt1(x.sun_hours)}</td>
+        <td class="right">${fmt1(x.overtime_hours)}</td>
+        <td class="right">€${fmt(x.revenue)}</td>
+        <td class="right">€${fmt(x.driver_cost)}</td>
+        <td class="right">€${fmt(x.fuel_cost)}</td>
+        <td class="right">€${fmt(x.adr_cost)}</td>
+        <td class="right">€${fmt(x.other_cost)}</td>
+        <td class="right">€${fmt(x.overhead_cost)}</td>
+        <td class="right">€${fmt(x.profit)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  refreshTourSelect();
+  renderLegTable();
+  renderSelectedTourPnl();
+
+  tourSel.addEventListener("change", () => {
+    selectedTourId = tourSel.value;
+    legFormSlot.innerHTML = "";
+    tourFormSlot.innerHTML = "";
+    renderLegTable();
+    renderSelectedTourPnl();
+  });
+
+  card.querySelector("#"+id+"_tourAdd").addEventListener("click", () => openTourForm(null));
+  card.querySelector("#"+id+"_tourEdit").addEventListener("click", () => {
+    const t = list("tours").find(x => String(x.tour_id) === String(selectedTourId));
+    if (!t) return alert("Tur bulunamadı.");
+    openTourForm(t);
+  });
+  card.querySelector("#"+id+"_tourDel").addEventListener("click", () => {
+    if (!selectedTourId) return;
+    if (!confirm("Bu tur ve bu tura ait satırları silmek istediğinize emin misiniz?")) return;
+    setList("legs", list("legs").filter(x => String(x.tour_id) !== String(selectedTourId)));
+    remove("tours", "tour_id", selectedTourId);
+    selectedTourId = null;
+    refreshTourSelect();
+    renderLegTable();
+    renderSelectedTourPnl();
+  });
+
+  card.querySelector("#"+id+"_legAdd").addEventListener("click", () => {
+    if (!selectedTourId) return alert("Önce bir tur seçin veya tur ekleyin.");
+    openLegForm(null);
+  });
+
+  card.querySelector("#"+id+"_legsExport").addEventListener("click", () => {
+    if (!selectedTourId) return;
+    downloadText(toCSV(list("legs").filter(x => String(x.tour_id) === String(selectedTourId))), `legs_${selectedTourId}.csv`, "text/csv;charset=utf-8");
+  });
+
+  card.addEventListener("click", (e) => {
+    const editId = e.target?.getAttribute?.("data-leg-edit");
+    const delId = e.target?.getAttribute?.("data-leg-del");
+    if (editId){
+      const rec = list("legs").find(x => String(x.leg_id) === String(editId));
+      if (!rec) return;
+      openLegForm(rec);
+    }
+    if (delId){
+      if (!confirm("Satırı silmek istediğinize emin misiniz?")) return;
+      remove("legs","leg_id",delId);
+      renderLegTable();
+      renderSelectedTourPnl();
+    }
+  });
+
+  return card;
+}
+
+/** ---------- Settings ---------- */
+function renderSettings(){
+  const card = document.createElement("div");
+  card.className = "card";
+  const s = state.settings;
+  const id = uuid();
+
+  card.innerHTML = `
+    <h3>Ayarlar</h3>
+    <div class="row">
+      <label>Yakıt €/L<br/><input id="${id}_fuelPrice" type="number" step="0.01" value="${esc(s.fuelPrice)}"></label>
+      <label>Tüketim (L/100km)<br/><input id="${id}_fuelL100" type="number" step="0.01" value="${esc(s.fuelL100)}"></label>
+      <label>ADR €/km<br/><input id="${id}_adrPerKm" type="number" step="0.01" value="${esc(s.adrPerKm)}"></label>
+      <label>Gece primi % (default)<br/><input id="${id}_nightPct" type="number" step="0.01" value="${esc(s.nightPct)}"></label>
+      <label>Genel gider %<br/><input id="${id}_overheadPct" type="number" step="0.01" value="${esc(s.overheadPct)}"></label>
+      <label>TLN varsayılan saat maliyeti (€)<br/><input id="${id}_empHour" type="number" step="0.01" value="${esc(s.employeeDefaultHourCost)}"></label>
+      <label>Sabit tur varsayılan dağıtım<br/>
+        <select id="${id}_alloc">
+          ${ALLOC_METHODS.map(m => `<option value="${m}" ${String(s.fixedTourAllocation)===m?"selected":""}>${m}</option>`).join("")}
+        </select>
+      </label>
+    </div>
+    <hr/>
+    <div class="row">
+      <button class="primary" id="${id}_save">Kaydet</button>
+    </div>
+    <div class="muted small" style="margin-top:8px;">
+      TLN yüzdeleri sözleşme bazında yönetilir. Bu ekrandaki değerler “genel varsayılan” gibidir.
+    </div>
+  `;
+
+  card.querySelector("#"+id+"_save").addEventListener("click", () => {
+    state.settings.fuelPrice = num(card.querySelector("#"+id+"_fuelPrice").value);
+    state.settings.fuelL100 = num(card.querySelector("#"+id+"_fuelL100").value);
+    state.settings.adrPerKm = num(card.querySelector("#"+id+"_adrPerKm").value);
+    state.settings.nightPct = num(card.querySelector("#"+id+"_nightPct").value);
+    state.settings.overheadPct = num(card.querySelector("#"+id+"_overheadPct").value);
+    state.settings.employeeDefaultHourCost = num(card.querySelector("#"+id+"_empHour").value);
+    state.settings.fixedTourAllocation = card.querySelector("#"+id+"_alloc").value;
+    saveState();
+    alert("Ayarlar kaydedildi.");
+  });
+
+  return card;
+}
+
+/** ---------- Schema Manager (Add your own fields) ---------- */
+function renderSchemaManager(){
+  const card = document.createElement("div");
+  card.className = "card";
+  const id = uuid();
+
+  const entities = Object.keys(state.schemas);
+  card.innerHTML = `
+    <h3>Alan Yönetimi (Field Manager)</h3>
+    <div class="muted small">
+      Her tabloya yeni alan ekleyebilirsiniz. Hesaplamalar çekirdek alanlarla yapılır; ek alanlar kayıt ve export’ta tutulur.
+    </div>
+    <hr/>
+    <div class="row">
+      <label>Tablo Seç<br/>
+        <select id="${id}_entity">
+          ${entities.map(e => `<option value="${e}">${e}</option>`).join("")}
+        </select>
+      </label>
+      <button id="${id}_exportSchema">Schema JSON Export</button>
+    </div>
+
+    <div class="grid2" style="margin-top:12px;">
+      <div>
+        <h4>Mevcut Alanlar</h4>
+        <div class="scroller">
+          <table id="${id}_fieldsTbl">
+            <thead>
+              <tr><th>key</th><th>label</th><th>type</th><th>required</th><th>default</th><th>İşlem</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <h4>Yeni Alan Ekle</h4>
+        <div class="card">
+          <div class="row">
+            <label>key (ör: customer_ref)<br/>
+              <input id="${id}_key" type="text" placeholder="snake_case önerilir"/>
+            </label>
+            <label>label (ekranda görünen)<br/>
+              <input id="${id}_label" type="text" placeholder="Müşteri Referansı"/>
+            </label>
+            <label>type<br/>
+              <select id="${id}_type">
+                <option value="text">text</option>
+                <option value="number">number</option>
+                <option value="boolean">boolean</option>
+                <option value="date">date</option>
+                <option value="datetime">datetime</option>
+                <option value="select">select</option>
+              </select>
+            </label>
+            <label>required<br/>
+              <select id="${id}_req">
+                <option value="false">false</option>
+                <option value="true">true</option>
+              </select>
+            </label>
+            <label>default (opsiyonel)<br/>
+              <input id="${id}_def" type="text" placeholder=""/>
+            </label>
+          </div>
+
+          <div style="margin-top:10px;">
+            <label>select options (virgülle, sadece type=select)<br/>
+              <input id="${id}_opts" type="text" placeholder="A,B,C"/>
+            </label>
+          </div>
+
+          <hr/>
+          <div class="row">
+            <button class="primary" id="${id}_addField">Alanı Ekle</button>
+          </div>
+          <div class="muted small" style="margin-top:8px;">
+            key benzersiz olmalı ve sadece harf/rakam/_ içermelidir.
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const entitySel = card.querySelector("#"+id+"_entity");
+  const tblBody = card.querySelector("#"+id+"_fieldsTbl tbody");
+
+  function renderFields(){
+    const ent = entitySel.value;
+    const schema = getSchema(ent);
+    tblBody.innerHTML = "";
+    for (const f of schema){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="kbd">${esc(f.key)}</td>
+        <td>${esc(f.label)}</td>
+        <td>${esc(f.type)}</td>
+        <td>${f.required ? "true" : "false"}</td>
+        <td>${esc(f.default ?? "")}</td>
+        <td><button class="danger" data-del-field="${esc(f.key)}">Sil</button></td>
+      `;
+      tblBody.appendChild(tr);
+    }
+  }
+
+  entitySel.addEventListener("change", renderFields);
+
+  card.querySelector("#"+id+"_addField").addEventListener("click", () => {
+    const ent = entitySel.value;
+    const key = card.querySelector("#"+id+"_key").value.trim();
+    const label = card.querySelector("#"+id+"_label").value.trim();
+    const type = card.querySelector("#"+id+"_type").value;
+    const required = card.querySelector("#"+id+"_req").value === "true";
+    const def = card.querySelector("#"+id+"_def").value.trim();
+    const optsRaw = card.querySelector("#"+id+"_opts").value.trim();
+
+    if (!key || !label) return alert("key ve label zorunludur.");
+    if (!/^[a-zA-Z0-9_]+$/.test(key)) return alert("key sadece harf/rakam/_ içermeli.");
+    if (getSchema(ent).some(x => x.key === key)) return alert("Bu key zaten var: " + key);
+
+    const field = {key, label, type, required};
+    if (def !== "") field.default = (type === "number") ? num(def) : def;
+    if (type === "select"){
+      field.options = optsRaw ? optsRaw.split(",").map(x=>x.trim()).filter(Boolean) : [];
+    }
+
+    state.schemas[ent].push(field);
+    saveState();
+
+    // apply defaults to existing records
+    const updated = list(ent).map(r => normalizeRecord(ent, r));
+    setList(ent, updated);
+
+    card.querySelector("#"+id+"_key").value = "";
+    card.querySelector("#"+id+"_label").value = "";
+    card.querySelector("#"+id+"_def").value = "";
+    card.querySelector("#"+id+"_opts").value = "";
+
+    renderFields();
+    alert("Alan eklendi: " + key);
+  });
+
+  card.addEventListener("click", (e) => {
+    const k = e.target?.getAttribute?.("data-del-field");
+    if (!k) return;
+    const ent = entitySel.value;
+    if (!confirm(`Alan silinsin mi? (${k})`)) return;
+    state.schemas[ent] = getSchema(ent).filter(f => f.key !== k);
+    saveState();
+    renderFields();
+  });
+
+  card.querySelector("#"+id+"_exportSchema").addEventListener("click", () => {
+    downloadText(JSON.stringify(state.schemas, null, 2), "schemas.json");
+  });
+
+  renderFields();
+  return card;
+}
+
+/** ---------- Backup import/export & reset ---------- */
+document.getElementById("btnBackupExport").addEventListener("click", () => {
+  downloadText(JSON.stringify(state, null, 2), "nedline_pnl_backup.json");
+});
+document.getElementById("btnBackupImport").addEventListener("click", () => {
+  const input = document.getElementById("fileInput");
+  input.value = "";
+  input.onchange = async () => {
+    const f = input.files[0];
+    if (!f) return;
+    const txt = await f.text();
+    try{
+      const obj = JSON.parse(txt);
+      if (!obj.data || !obj.schemas || !obj.settings) throw new Error("Format geçersiz.");
+      state = obj;
+      saveState();
+      alert("Yedek içe aktarıldı.");
+      render();
+    } catch(e){
+      alert("Yedek içe aktarılamadı: " + e.message);
+    }
+  };
+  input.click();
+});
+document.getElementById("btnReset").addEventListener("click", () => {
+  if (!confirm("Tüm veriler silinecek. Emin misiniz?")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  loadState();
+  selectedTourId = null;
+  render();
+});
+
+/** ---------- Init ---------- */
+loadState();
+render();
+</script>
+
+</body>
+</html>
