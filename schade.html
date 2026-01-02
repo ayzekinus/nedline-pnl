@@ -4,36 +4,110 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kaza Takip - MVP Demo</title>
-  <style>
-    :root { --bg:#0b1220; --card:#111b2e; --muted:#9fb0d0; --text:#e8eefc; --line:#23314e; --btn:#1d4ed8; }
-    body { margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); color:var(--text); }
-    header { padding:16px 20px; border-bottom:1px solid var(--line); display:flex; gap:12px; align-items:center; }
-    header h1 { margin:0; font-size:16px; font-weight:650; }
-    .wrap { display:grid; grid-template-columns: 360px 1fr; gap:16px; padding:16px; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; }
-    .muted { color:var(--muted); font-size:12px; }
-    input, select, textarea, button { width:100%; box-sizing:border-box; border-radius:10px; border:1px solid var(--line); background:#0f1830; color:var(--text); padding:10px; }
-    textarea { min-height:74px; resize:vertical; }
-    button { background:var(--btn); border:none; font-weight:650; cursor:pointer; }
-    button.secondary { background:#0f1830; border:1px solid var(--line); }
-    .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .list { display:flex; flex-direction:column; gap:10px; }
-    .item { padding:10px; border:1px solid var(--line); border-radius:12px; cursor:pointer; }
-    .item:hover { border-color:#35518b; }
-    .pill { display:inline-block; padding:2px 8px; border:1px solid var(--line); border-radius:999px; font-size:11px; margin-left:6px; color:var(--muted); }
-    .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
-    .sectionTitle { margin:0 0 8px 0; font-size:13px; }
-    .tbl { width:100%; border-collapse:collapse; font-size:13px; }
-    .tbl th,.tbl td { border-bottom:1px solid var(--line); padding:8px 6px; text-align:left; vertical-align:top; }
-    .actions { display:flex; gap:8px; }
-    .actions button { width:auto; padding:10px 12px; }
-    .split { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
-    .small { font-size:12px; }
-    .right { text-align:right; }
-    .danger { background:#7f1d1d; }
-    .ok { background:#14532d; }
-    .tag { padding:2px 8px; border-radius:999px; font-size:11px; display:inline-block; }
-  </style>
+ <style>
+  :root{
+    --bg:#f6f7fb;
+    --card:#ffffff;
+    --muted:#5b6b86;
+    --text:#0f172a;
+    --line:#e5e7eb;
+    --btn:#2563eb;
+  }
+
+  body{
+    margin:0;
+    font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    background:var(--bg);
+    color:var(--text);
+  }
+
+  header{
+    padding:16px 20px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    gap:12px;
+    align-items:center;
+    background:var(--card);
+  }
+
+  .wrap{
+    display:grid;
+    grid-template-columns: 360px 1fr;
+    gap:16px;
+    padding:16px;
+  }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  }
+
+  .muted{ color:var(--muted); font-size:12px; }
+
+  input, select, textarea, button{
+    width:100%;
+    box-sizing:border-box;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:#ffffff;
+    color:var(--text);
+    padding:10px;
+  }
+
+  textarea{ min-height:74px; resize:vertical; }
+
+  button{
+    background:var(--btn);
+    border:none;
+    font-weight:650;
+    cursor:pointer;
+    color:#ffffff;
+  }
+
+  button.secondary{
+    background:#ffffff;
+    border:1px solid var(--line);
+    color:var(--text);
+  }
+
+  .item{
+    padding:10px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    cursor:pointer;
+    background:#ffffff;
+  }
+
+  .item:hover{ border-color:#93c5fd; }
+
+  .pill{
+    display:inline-block;
+    padding:2px 8px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    font-size:11px;
+    margin-left:6px;
+    color:var(--muted);
+    background:#f9fafb;
+  }
+
+  .tbl{ width:100%; border-collapse:collapse; font-size:13px; }
+  .tbl th,.tbl td{ border-bottom:1px solid var(--line); padding:8px 6px; text-align:left; vertical-align:top; }
+
+  .danger{ background:#dc2626; color:#fff; }
+  .ok{ background:#16a34a; color:#fff; }
+
+  .tag{
+    padding:2px 8px;
+    border-radius:999px;
+    font-size:11px;
+    display:inline-block;
+  }
+</style>
+
 </head>
 <body>
   <header>
