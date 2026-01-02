@@ -6,170 +6,170 @@
   <title>Kaza Takip - MVP</title>
   <style>
     :root{
-      --bg:#f6f7fb;
-      --card:#ffffff;
+      --bg:#ffffff;
+      --page:#ffffff;
+      --panel:#ffffff;
       --text:#0f172a;
       --muted:#5b6b86;
-      --line:#e5e7eb;
-      --primary:#2563eb;
-      --shadow: 0 10px 26px rgba(15,23,42,.08);
-      --shadow2: 0 6px 18px rgba(15,23,42,.06);
+      --line:#111827;
+      --lineSoft:#e5e7eb;
+      --primary:#111827;
+      --primarySoft:#f3f4f6;
+      --danger:#dc2626;
+      --shadow: 0 10px 26px rgba(15,23,42,.06);
     }
 
     *{ box-sizing:border-box; }
     body{
       margin:0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      background:var(--bg);
+      background:var(--page);
       color:var(--text);
     }
 
+    /* Header - çizimdeki gibi sade */
     header{
-      position: sticky;
-      top:0;
-      z-index:20;
-      background:var(--card);
-      border-bottom:1px solid var(--line);
-      padding:14px 16px;
-      display:flex;
-      gap:12px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-
-    header h1{
-      margin:0;
-      font-size:16px;
-      font-weight:700;
-      letter-spacing:.2px;
-    }
-
-    .muted{ color:var(--muted); font-size:12px; }
-
-    .headerActions{
-      margin-left:auto;
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-
-    .app{
-      display:grid;
-      grid-template-columns: 1fr 420px;
-      gap:16px;
-      padding:16px;
-      align-items:start;
-    }
-
-    .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:14px;
-      box-shadow: var(--shadow2);
-    }
-
-    .sectionTitle{
-      margin:0 0 10px 0;
-      font-size:13px;
-      font-weight:700;
-    }
-
-    input, select, textarea, button{
-      width:100%;
-      border-radius:10px;
-      border:1px solid var(--line);
-      padding:10px;
-      background:#fff;
-      color:var(--text);
-      font-size:16px; /* mobil zoom engeli */
-    }
-
-    textarea{ min-height:84px; resize:vertical; }
-
-    button{
-      cursor:pointer;
-      border:none;
-      background:var(--primary);
-      color:#fff;
-      font-weight:700;
-    }
-
-    button.secondary{
-      background:#fff;
-      border:1px solid var(--line);
-      color:var(--text);
-      font-weight:700;
-    }
-
-    button.danger{
-      background:#dc2626;
-      color:#fff;
-    }
-
-    .row{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
-      margin-bottom:10px;
-    }
-
-    .actions{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-
-    .actions button{
-      width:auto;
-      padding:10px 12px;
-      border-radius:10px;
-    }
-
-    .rightCol{
-      display:flex;
-      flex-direction:column;
-      gap:16px;
-    }
-
-    .listHeader{
+      padding:18px 22px;
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
+      gap:12px;
+      flex-wrap:wrap;
     }
 
-    .list{
+    .headerLeft{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .headerRight{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      flex-wrap:wrap;
+    }
+
+    .btnPrimary{
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      border-radius:8px;
+      padding:10px 14px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .btnPrimary:hover{ background:var(--primarySoft); }
+
+    .iconLink{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:none;
+      background:transparent;
+      cursor:pointer;
+      padding:8px 6px;
+      color:var(--text);
+      font-weight:600;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+    .iconLink svg{ width:18px; height:18px; }
+    .iconLink.danger{ color:var(--danger); }
+
+    /* Main shell - çizimdeki büyük çerçeve */
+    .shellWrap{
+      padding: 0 22px 22px 22px;
+    }
+    .shell{
+      border:1.5px solid var(--line);
+      background:var(--bg);
+      min-height: 520px;
+      display:grid;
+      grid-template-columns: 260px 1fr;
+    }
+
+    /* Left list panel */
+    .leftPanel{
+      border-right:1.5px solid var(--line);
+      padding:14px;
       display:flex;
       flex-direction:column;
       gap:10px;
-      margin-top:10px;
+      min-width: 220px;
+    }
+
+    /* Right detail panel */
+    .rightPanel{
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      min-width: 0;
+    }
+
+    .panelTitle{
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.2px;
+      margin:0;
+    }
+
+    .muted{
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    input, select, textarea, button{
+      font-size:16px; /* mobil zoom engeli */
+      font-family: inherit;
+    }
+
+    .filters{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:8px;
+    }
+
+    input, select, textarea{
+      width:100%;
+      border:1px solid var(--lineSoft);
+      border-radius:8px;
+      padding:10px;
+      background:#fff;
+      color:var(--text);
+      outline:none;
+    }
+    textarea{
+      min-height:90px;
+      resize:vertical;
+    }
+
+    /* List */
+    .list{
+      margin-top:6px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      overflow:auto;
+      padding-right:4px;
+      max-height: calc(520px - 120px);
     }
 
     .item{
-      border:1px solid var(--line);
-      border-radius:12px;
+      border:1px solid var(--lineSoft);
+      border-radius:10px;
       padding:10px;
       cursor:pointer;
       background:#fff;
-      transition: border-color .12s ease, box-shadow .12s ease;
     }
-
-    .item:hover{
-      border-color:#93c5fd;
-      box-shadow: 0 6px 16px rgba(37,99,235,.08);
-    }
-
-    .item.active{
-      border-color: var(--primary);
-      box-shadow: 0 10px 22px rgba(37,99,235,.14);
-    }
+    .item:hover{ border-color:#cbd5e1; }
+    .item.active{ border-color: var(--line); }
 
     .pill{
       display:inline-block;
       padding:2px 8px;
-      border:1px solid var(--line);
+      border:1px solid var(--lineSoft);
       border-radius:999px;
       font-size:11px;
       color:var(--muted);
@@ -185,101 +185,134 @@
       font-size:11px;
       font-weight:800;
       margin-left:8px;
+      border:1px solid var(--lineSoft);
       vertical-align:middle;
-      border:1px solid var(--line);
     }
-
     .tag-open{ background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
     .tag-review{ background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
     .tag-closed{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
 
-    .detailTop{
+    /* Detail top */
+    .detailHead{
       display:flex;
       align-items:flex-start;
-      gap:12px;
+      justify-content:space-between;
+      gap:10px;
       flex-wrap:wrap;
+      border-bottom:1px solid var(--lineSoft);
+      padding-bottom:10px;
     }
 
-    .detailTopLeft{ flex:1; min-width: 240px; }
-    .detailTopRight{
+    .detailHead h2{
+      margin:0;
+      font-size:14px;
+      font-weight:800;
+    }
+
+    .detailActions{
       display:flex;
       gap:8px;
       align-items:center;
       flex-wrap:wrap;
     }
-    .detailTopRight select{ width:auto; min-width: 140px; }
-    .detailTopRight button{ width:auto; }
 
-    .grid2{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px;
-      margin-top:12px;
-    }
-
-    .split{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px;
-      margin-top:12px;
-    }
-
-    .small{ font-size:13px; line-height:1.35; }
-
-    .tbl{
-      width:100%;
-      border-collapse:collapse;
-      font-size:13px;
-    }
-    .tbl th, .tbl td{
-      border-bottom:1px solid var(--line);
-      padding:8px 6px;
-      text-align:left;
-      vertical-align:top;
-    }
-    .right{ text-align:right; }
-
-    .tableWrap{
-      overflow-x:auto;
-      -webkit-overflow-scrolling: touch;
-      border-radius:12px;
-      border:1px solid var(--line);
+    .btnSecondary{
+      border:1px solid var(--lineSoft);
       background:#fff;
+      color:var(--text);
+      border-radius:8px;
+      padding:9px 12px;
+      font-weight:700;
+      cursor:pointer;
     }
-    .tableWrap table{ min-width: 520px; }
+    .btnSecondary:hover{ background:var(--primarySoft); }
+    .btnDanger{
+      border:1px solid #fecaca;
+      background:#fff;
+      color:var(--danger);
+      border-radius:8px;
+      padding:9px 12px;
+      font-weight:800;
+      cursor:pointer;
+    }
 
     /* Tabs */
     .tabs{
       display:flex;
       gap:8px;
-      margin-top:12px;
-      padding-bottom:6px;
       overflow-x:auto;
       -webkit-overflow-scrolling: touch;
+      padding-bottom:6px;
     }
     .tabBtn{
-      width:auto;
       flex:0 0 auto;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid var(--line);
+      border:1px solid var(--lineSoft);
       background:#fff;
-      color:var(--text);
-      font-weight:800;
+      border-radius:999px;
+      padding:7px 10px;
       font-size:13px;
+      font-weight:800;
       cursor:pointer;
       white-space:nowrap;
     }
     .tabBtn.active{
-      border-color: rgba(37,99,235,.35);
-      background: rgba(37,99,235,.08);
-      color: #1d4ed8;
+      border-color: #111827;
+      background: #f3f4f6;
     }
-    .tabPanel{
-      display:none;
-      margin-top:12px;
-    }
+
+    .tabPanel{ display:none; }
     .tabPanel.active{ display:block; }
+
+    /* Layout helpers inside detail */
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      align-items:start;
+    }
+
+    .card{
+      border:1px solid var(--lineSoft);
+      border-radius:12px;
+      padding:12px;
+      background:#fff;
+      box-shadow: var(--shadow);
+    }
+
+    .row2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-bottom:10px;
+    }
+
+    .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+
+    /* Tables */
+    .tableWrap{
+      overflow-x:auto;
+      border:1px solid var(--lineSoft);
+      border-radius:12px;
+      background:#fff;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+      min-width: 520px;
+    }
+    th, td{
+      border-bottom:1px solid var(--lineSoft);
+      padding:8px 6px;
+      text-align:left;
+      vertical-align:top;
+    }
+    .right{ text-align:right; }
 
     /* Checklist */
     .checkHeader{
@@ -287,27 +320,22 @@
       align-items:center;
       justify-content:space-between;
       gap:10px;
+      flex-wrap:wrap;
       margin-bottom:10px;
-      flex-wrap:wrap;
-    }
-    .progress{
-      display:flex;
-      gap:8px;
-      align-items:center;
-      flex-wrap:wrap;
     }
     .bar{
       width: 180px;
       height: 10px;
       border-radius: 999px;
       background: #eef2ff;
-      border: 1px solid var(--line);
+      border: 1px solid var(--lineSoft);
       overflow:hidden;
     }
     .barFill{
       height:100%;
       width:0%;
-      background: rgba(37,99,235,.6);
+      background:#111827;
+      opacity:.55;
     }
     .checkList{
       display:flex;
@@ -315,7 +343,7 @@
       gap:10px;
     }
     .checkItem{
-      border:1px solid var(--line);
+      border:1px solid var(--lineSoft);
       border-radius:12px;
       padding:10px;
       background:#fff;
@@ -329,22 +357,16 @@
       height:18px;
       margin-top:2px;
     }
-    .checkTitle{
-      font-weight:800;
-      font-size:13px;
-    }
+    .checkTitle{ font-weight:800; font-size:13px; }
     .checkMeta{
-      margin-top:6px;
+      margin-top:8px;
       display:grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 240px;
       gap:10px;
-    }
-    .checkMeta input{
-      font-size:14px;
-      padding:8px 10px;
+      align-items:center;
     }
 
-    /* Modal */
+    /* Modal (Yeni Kaza) */
     .modal{
       position:fixed;
       inset:0;
@@ -355,14 +377,17 @@
     .modalBackdrop{
       position:absolute;
       inset:0;
-      background: rgba(15,23,42,.45);
+      background: rgba(15,23,42,.35);
     }
     .modalPanel{
       position:relative;
       width: min(820px, calc(100% - 20px));
-      margin: 10px auto;
-      max-height: calc(100vh - 20px);
+      margin: 14px auto;
+      max-height: calc(100vh - 28px);
       overflow:auto;
+      border:1px solid var(--lineSoft);
+      border-radius:14px;
+      background:#fff;
       box-shadow: var(--shadow);
     }
     .modalHeader{
@@ -370,25 +395,21 @@
       align-items:center;
       justify-content:space-between;
       gap:10px;
-      margin-bottom:10px;
+      padding:12px;
+      border-bottom:1px solid var(--lineSoft);
       position: sticky;
       top:0;
-      background: var(--card);
-      padding: 10px 10px 6px 10px;
-      border-bottom: 1px solid var(--line);
-      border-radius: 12px 12px 0 0;
-      z-index: 5;
+      background:#fff;
+      z-index:2;
     }
-    .modalBody{ padding: 10px; }
+    .modalBody{ padding:12px; }
 
-    /* Mobil: önce liste, sonra detay */
+    /* Mobile */
     @media (max-width: 980px){
-      .app{ grid-template-columns: 1fr; padding:12px; }
-      .rightCol{ order:1; }
-      #detailCard{ order:2; }
-      .grid2, .split{ grid-template-columns: 1fr; }
-      .row{ grid-template-columns: 1fr; }
-      .headerActions{ margin-left:0; width:100%; justify-content:flex-start; }
+      .shell{ grid-template-columns: 1fr; }
+      .leftPanel{ border-right:none; border-bottom:1.5px solid var(--line); }
+      .list{ max-height: 280px; }
+      .grid2, .row2{ grid-template-columns: 1fr; }
       .checkMeta{ grid-template-columns: 1fr; }
       .bar{ width: 100%; max-width: 260px; }
     }
@@ -397,276 +418,45 @@
 <body>
 
 <header>
-  <h1>Kaza Takip – MVP</h1>
-  <span class="muted">LocalStorage tabanlı demo</span>
+  <div class="headerLeft">
+    <button class="btnPrimary" type="button" onclick="App.openCreate()">YENİ KAZA EKLE</button>
+  </div>
 
-  <div class="headerActions">
-    <button class="secondary" type="button" onclick="App.exportData()">Export JSON</button>
-    <button class="secondary" type="button" onclick="App.importData()">Import JSON</button>
-    <button class="danger" type="button" onclick="App.resetAll()">Sıfırla</button>
+  <div class="headerRight">
+    <button class="iconLink" type="button" onclick="App.exportData()" title="Export JSON">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 3v12"></path><path d="M8 11l4 4 4-4"></path><path d="M4 21h16"></path>
+      </svg>
+      Export Json
+    </button>
+
+    <button class="iconLink" type="button" onclick="App.importData()" title="Import JSON">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 21V9"></path><path d="M8 13l4-4 4 4"></path><path d="M4 3h16"></path>
+      </svg>
+      Import Json
+    </button>
+
+    <button class="iconLink danger" type="button" onclick="App.resetAll()" title="Verileri Sıfırla">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 6h18"></path><path d="M8 6V4h8v2"></path>
+        <path d="M19 6l-1 14H6L5 6"></path>
+        <path d="M10 11v6"></path><path d="M14 11v6"></path>
+      </svg>
+      Verileri Sıfırla
+    </button>
   </div>
 </header>
 
-<div class="app">
-  <!-- SOL: DETAY -->
-  <div class="card" id="detailCard">
-    <div id="detailEmpty" class="muted">
-      Sağ taraftan bir kaza seçin veya “Yeni Kaza” oluşturun.
-    </div>
-
-    <div id="detail" style="display:none;">
-      <div class="detailTop">
-        <div class="detailTopLeft">
-          <h2 style="margin:0; font-size:16px;" id="dTitle"></h2>
-          <div class="muted" id="dMeta"></div>
-        </div>
-        <div class="detailTopRight">
-          <select id="dStatus" onchange="App.updateStatus()">
-            <option value="OPEN">Açık</option>
-            <option value="IN_REVIEW">İncelemede</option>
-            <option value="CLOSED">Kapalı</option>
-          </select>
-          <button class="secondary" type="button" onclick="App.deleteCase()">Sil</button>
-        </div>
+<div class="shellWrap">
+  <div class="shell">
+    <!-- SOL: KAZA LİSTESİ -->
+    <div class="leftPanel">
+      <div>
+        <div class="panelTitle">KAZA LİSTESİ</div>
       </div>
 
-      <!-- Tabs -->
-      <div class="tabs" id="tabs">
-        <button class="tabBtn" data-tab="GENERAL" onclick="App.setTab('GENERAL')">Genel</button>
-        <button class="tabBtn" data-tab="THIRD" onclick="App.setTab('THIRD')">Karşı Taraf</button>
-        <button class="tabBtn" data-tab="INSURANCE" onclick="App.setTab('INSURANCE')">Sigorta</button>
-        <button class="tabBtn" data-tab="CHECKLIST" onclick="App.setTab('CHECKLIST')">Evrak Checklist</button>
-        <button class="tabBtn" data-tab="OPS" onclick="App.setTab('OPS')">Operasyon</button>
-      </div>
-
-      <!-- GENERAL -->
-      <div class="tabPanel" id="tab-GENERAL">
-        <div class="grid2">
-          <div class="card" style="padding:12px;">
-            <h3 class="sectionTitle">Özet</h3>
-            <div class="small" id="dSummary"></div>
-          </div>
-          <div class="card" style="padding:12px;">
-            <h3 class="sectionTitle">Konum</h3>
-            <div class="small" id="dLocation"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- THIRD PARTY -->
-      <div class="tabPanel" id="tab-THIRD">
-        <div class="card" style="padding:12px;">
-          <h3 class="sectionTitle">Karşı Taraf Bilgileri</h3>
-
-          <div class="row">
-            <input id="tpName" placeholder="Karşı taraf adı / firma" />
-            <input id="tpPhone" placeholder="Telefon" />
-          </div>
-
-          <div class="row">
-            <input id="tpPlate" placeholder="Karşı taraf plaka" />
-            <input id="tpInsurer" placeholder="Karşı taraf sigorta şirketi" />
-          </div>
-
-          <div class="row">
-            <input id="tpPolicyNo" placeholder="Poliçe No (varsa)" />
-            <input id="tpDriverLicense" placeholder="Ehliyet No (varsa)" />
-          </div>
-
-          <textarea id="tpNotes" placeholder="Notlar (tanık bilgisi, olay detayı vb.)"></textarea>
-
-          <div class="actions" style="margin-top:10px;">
-            <button type="button" onclick="App.saveThirdParty()">Kaydet</button>
-            <button class="secondary" type="button" onclick="App.clearThirdParty()">Temizle</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- INSURANCE -->
-      <div class="tabPanel" id="tab-INSURANCE">
-        <div class="card" style="padding:12px;">
-          <h3 class="sectionTitle">Sigorta Süreci</h3>
-
-          <div class="row">
-            <input id="insClaimNo" placeholder="Sigorta Dosya No" />
-            <select id="insStatus">
-              <option value="DRAFT">Taslak</option>
-              <option value="SUBMITTED">Bildirildi</option>
-              <option value="IN_PROGRESS">Süreçte</option>
-              <option value="APPROVED">Onaylandı</option>
-              <option value="REJECTED">Reddedildi</option>
-              <option value="CLOSED">Kapandı</option>
-            </select>
-          </div>
-
-          <div class="row">
-            <input id="insInsurer" placeholder="Sigorta şirketi (bizim)" />
-            <input id="insBroker" placeholder="Broker / Acenta" />
-          </div>
-
-          <div class="row">
-            <input id="insNotifiedAt" type="date" />
-            <input id="insContact" placeholder="İlgili kişi / iletişim" />
-          </div>
-
-          <textarea id="insNotes" placeholder="Sigorta notları / yazışma özeti"></textarea>
-
-          <div class="actions" style="margin-top:10px;">
-            <button type="button" onclick="App.saveInsurance()">Kaydet</button>
-            <button class="secondary" type="button" onclick="App.clearInsurance()">Temizle</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- CHECKLIST -->
-      <div class="tabPanel" id="tab-CHECKLIST">
-        <div class="card" style="padding:12px;">
-          <div class="checkHeader">
-            <div>
-              <h3 class="sectionTitle" style="margin:0;">Evrak Checklist</h3>
-              <div class="muted">Eksik evraklar için görev açabilirsiniz (Operasyon sekmesi).</div>
-            </div>
-            <div class="progress">
-              <div class="muted" id="checkProgressText">0/0</div>
-              <div class="bar"><div class="barFill" id="checkProgressBar"></div></div>
-            </div>
-          </div>
-
-          <div class="checkList" id="checkList"></div>
-        </div>
-      </div>
-
-      <!-- OPS -->
-      <div class="tabPanel" id="tab-OPS">
-        <div class="split">
-          <div class="card" style="padding:12px;">
-            <h3 class="sectionTitle">Görevler</h3>
-            <div class="row">
-              <input id="tTitle" placeholder="Görev başlığı" />
-              <input id="tDue" type="date" />
-            </div>
-            <div class="row">
-              <input id="tAssignee" placeholder="Atanan (örn. Operasyon)" />
-              <button type="button" onclick="App.addTask()">Görev Ekle</button>
-            </div>
-
-            <div class="tableWrap" style="margin-top:10px;">
-              <table class="tbl">
-                <thead>
-                  <tr>
-                    <th>Başlık</th>
-                    <th>Atanan</th>
-                    <th>Son Tarih</th>
-                    <th class="right">Durum</th>
-                  </tr>
-                </thead>
-                <tbody id="tBody"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="card" style="padding:12px;">
-            <h3 class="sectionTitle">Maliyetler</h3>
-            <div class="row">
-              <select id="cType">
-                <option value="REPAIR">Onarım</option>
-                <option value="TOWING">Çekici</option>
-                <option value="PARKING">Otopark</option>
-                <option value="REPLACEMENT">İkame</option>
-                <option value="PENALTY">Ceza</option>
-                <option value="THIRD_PARTY">3. Taraf</option>
-              </select>
-              <input id="cAmount" type="number" step="0.01" placeholder="Tutar (EUR)" />
-            </div>
-            <div class="row">
-              <input id="cSupplier" placeholder="Tedarikçi" />
-              <input id="cInvoice" placeholder="Fatura No" />
-            </div>
-            <button type="button" onclick="App.addCost()">Maliyet Ekle</button>
-
-            <div class="tableWrap" style="margin-top:10px;">
-              <table class="tbl">
-                <thead>
-                  <tr>
-                    <th>Tür</th>
-                    <th>Tedarikçi</th>
-                    <th>Fatura</th>
-                    <th class="right">Tutar</th>
-                  </tr>
-                </thead>
-                <tbody id="cBody"></tbody>
-                <tfoot>
-                  <tr>
-                    <td colspan="3" class="right"><b>Toplam</b></td>
-                    <td class="right" id="cTotal"></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div class="split">
-          <div class="card" style="padding:12px;">
-            <h3 class="sectionTitle">Ekler (Foto/Dosya)</h3>
-            <div class="row">
-              <select id="aType">
-                <option value="PHOTO">Foto</option>
-                <option value="VIDEO">Video</option>
-                <option value="REPORT">Tutanak / PDF</option>
-                <option value="INVOICE">Fatura</option>
-                <option value="OTHER">Diğer</option>
-              </select>
-              <input id="aFile" type="file" />
-            </div>
-            <button type="button" onclick="App.addAttachment()">Yükle</button>
-            <div class="muted" style="margin-top:8px;">Demo: Dosyalar base64 ile LocalStorage’a yazılır (boyut sınırlı).</div>
-
-            <div class="tableWrap" style="margin-top:10px;">
-              <table class="tbl">
-                <thead>
-                  <tr>
-                    <th>Tür</th>
-                    <th>Dosya</th>
-                    <th>Tarih</th>
-                    <th class="right">İşlem</th>
-                  </tr>
-                </thead>
-                <tbody id="aBody"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="card" style="padding:12px;">
-            <h3 class="sectionTitle">Timeline</h3>
-            <div class="tableWrap">
-              <table class="tbl">
-                <thead>
-                  <tr>
-                    <th>Tarih</th>
-                    <th>Kim</th>
-                    <th>Olay</th>
-                  </tr>
-                </thead>
-                <tbody id="lBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- SAĞ: LİSTE -->
-  <div class="rightCol">
-    <div class="card">
-      <div class="listHeader">
-        <h2 class="sectionTitle" style="margin:0;">Kaza Listesi</h2>
-        <button type="button" onclick="App.openCreate()">Yeni Kaza</button>
-      </div>
-
-      <div class="row">
+      <div class="filters">
         <input id="q" placeholder="Ara (plaka, sürücü, case no)..." oninput="App.renderList()" />
         <select id="fStatus" onchange="App.renderList()">
           <option value="">Tümü</option>
@@ -678,21 +468,278 @@
 
       <div id="list" class="list"></div>
     </div>
-  </div>
-</div>
+
+    <!-- SAĞ: KAZA DETAY -->
+    <div class="rightPanel">
+      <div class="panelTitle">KAZA LİSTESİ DETAY</div>
+
+      <div id="detailEmpty" class="muted">
+        Soldan bir kaza seçin veya “YENİ KAZA EKLE” ile yeni kayıt oluşturun.
+      </div>
+
+      <div id="detail" style="display:none;">
+        <div class="detailHead">
+          <div>
+            <h2 id="dTitle"></h2>
+            <div class="muted" id="dMeta"></div>
+          </div>
+
+          <div class="detailActions">
+            <select id="dStatus" onchange="App.updateStatus()">
+              <option value="OPEN">Açık</option>
+              <option value="IN_REVIEW">İncelemede</option>
+              <option value="CLOSED">Kapalı</option>
+            </select>
+            <button class="btnDanger" type="button" onclick="App.deleteCase()">Sil</button>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <button class="tabBtn" data-tab="GENERAL" onclick="App.setTab('GENERAL')">Genel</button>
+          <button class="tabBtn" data-tab="THIRD" onclick="App.setTab('THIRD')">Karşı Taraf</button>
+          <button class="tabBtn" data-tab="INSURANCE" onclick="App.setTab('INSURANCE')">Sigorta</button>
+          <button class="tabBtn" data-tab="CHECKLIST" onclick="App.setTab('CHECKLIST')">Evrak Checklist</button>
+          <button class="tabBtn" data-tab="OPS" onclick="App.setTab('OPS')">Operasyon</button>
+        </div>
+
+        <!-- Genel -->
+        <div class="tabPanel" id="tab-GENERAL">
+          <div class="grid2">
+            <div class="card">
+              <div class="panelTitle" style="margin-bottom:8px;">Özet</div>
+              <div id="dSummary"></div>
+            </div>
+            <div class="card">
+              <div class="panelTitle" style="margin-bottom:8px;">Konum</div>
+              <div id="dLocation"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Karşı Taraf -->
+        <div class="tabPanel" id="tab-THIRD">
+          <div class="card">
+            <div class="panelTitle" style="margin-bottom:10px;">Karşı Taraf Bilgileri</div>
+
+            <div class="row2">
+              <input id="tpName" placeholder="Karşı taraf adı / firma" />
+              <input id="tpPhone" placeholder="Telefon" />
+            </div>
+
+            <div class="row2">
+              <input id="tpPlate" placeholder="Karşı taraf plaka" />
+              <input id="tpInsurer" placeholder="Karşı taraf sigorta şirketi" />
+            </div>
+
+            <div class="row2">
+              <input id="tpPolicyNo" placeholder="Poliçe No (varsa)" />
+              <input id="tpDriverLicense" placeholder="Ehliyet No (varsa)" />
+            </div>
+
+            <textarea id="tpNotes" placeholder="Notlar (tanık, olay detayı vb.)"></textarea>
+
+            <div class="actions">
+              <button class="btnPrimary" type="button" onclick="App.saveThirdParty()">Kaydet</button>
+              <button class="btnSecondary" type="button" onclick="App.clearThirdParty()">Temizle</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sigorta -->
+        <div class="tabPanel" id="tab-INSURANCE">
+          <div class="card">
+            <div class="panelTitle" style="margin-bottom:10px;">Sigorta Süreci</div>
+
+            <div class="row2">
+              <input id="insClaimNo" placeholder="Sigorta Dosya No" />
+              <select id="insStatus">
+                <option value="DRAFT">Taslak</option>
+                <option value="SUBMITTED">Bildirildi</option>
+                <option value="IN_PROGRESS">Süreçte</option>
+                <option value="APPROVED">Onaylandı</option>
+                <option value="REJECTED">Reddedildi</option>
+                <option value="CLOSED">Kapandı</option>
+              </select>
+            </div>
+
+            <div class="row2">
+              <input id="insInsurer" placeholder="Sigorta şirketi (bizim)" />
+              <input id="insBroker" placeholder="Broker / Acenta" />
+            </div>
+
+            <div class="row2">
+              <input id="insNotifiedAt" type="date" />
+              <input id="insContact" placeholder="İlgili kişi / iletişim" />
+            </div>
+
+            <textarea id="insNotes" placeholder="Sigorta notları / yazışma özeti"></textarea>
+
+            <div class="actions">
+              <button class="btnPrimary" type="button" onclick="App.saveInsurance()">Kaydet</button>
+              <button class="btnSecondary" type="button" onclick="App.clearInsurance()">Temizle</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Evrak Checklist -->
+        <div class="tabPanel" id="tab-CHECKLIST">
+          <div class="card">
+            <div class="checkHeader">
+              <div>
+                <div class="panelTitle">Evrak Checklist</div>
+                <div class="muted">Eksik evrak için “Operasyon” sekmesinde görev açabilirsiniz.</div>
+              </div>
+              <div style="display:flex; gap:10px; align-items:center;">
+                <div class="muted" id="checkProgressText">0/0</div>
+                <div class="bar"><div class="barFill" id="checkProgressBar"></div></div>
+              </div>
+            </div>
+
+            <div class="checkList" id="checkList"></div>
+          </div>
+        </div>
+
+        <!-- Operasyon -->
+        <div class="tabPanel" id="tab-OPS">
+          <div class="grid2">
+            <div class="card">
+              <div class="panelTitle" style="margin-bottom:10px;">Görevler</div>
+
+              <div class="row2">
+                <input id="tTitle" placeholder="Görev başlığı" />
+                <input id="tDue" type="date" />
+              </div>
+              <div class="row2">
+                <input id="tAssignee" placeholder="Atanan (örn. Operasyon)" />
+                <button class="btnPrimary" type="button" onclick="App.addTask()">Görev Ekle</button>
+              </div>
+
+              <div class="tableWrap" style="margin-top:10px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Başlık</th>
+                      <th>Atanan</th>
+                      <th>Son Tarih</th>
+                      <th class="right">Durum</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="panelTitle" style="margin-bottom:10px;">Maliyetler</div>
+
+              <div class="row2">
+                <select id="cType">
+                  <option value="REPAIR">Onarım</option>
+                  <option value="TOWING">Çekici</option>
+                  <option value="PARKING">Otopark</option>
+                  <option value="REPLACEMENT">İkame</option>
+                  <option value="PENALTY">Ceza</option>
+                  <option value="THIRD_PARTY">3. Taraf</option>
+                </select>
+                <input id="cAmount" type="number" step="0.01" placeholder="Tutar (EUR)" />
+              </div>
+              <div class="row2">
+                <input id="cSupplier" placeholder="Tedarikçi" />
+                <input id="cInvoice" placeholder="Fatura No" />
+              </div>
+              <button class="btnPrimary" type="button" onclick="App.addCost()">Maliyet Ekle</button>
+
+              <div class="tableWrap" style="margin-top:10px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tür</th>
+                      <th>Tedarikçi</th>
+                      <th>Fatura</th>
+                      <th class="right">Tutar</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cBody"></tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="3" class="right"><b>Toplam</b></td>
+                      <td class="right" id="cTotal"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="card">
+              <div class="panelTitle" style="margin-bottom:10px;">Ekler (Foto/Dosya)</div>
+
+              <div class="row2">
+                <select id="aType">
+                  <option value="PHOTO">Foto</option>
+                  <option value="VIDEO">Video</option>
+                  <option value="REPORT">Tutanak / PDF</option>
+                  <option value="INVOICE">Fatura</option>
+                  <option value="OTHER">Diğer</option>
+                </select>
+                <input id="aFile" type="file" />
+              </div>
+
+              <button class="btnPrimary" type="button" onclick="App.addAttachment()">Yükle</button>
+              <div class="muted" style="margin-top:8px;">Demo: Dosyalar base64 ile LocalStorage’a yazılır (boyut sınırlı).</div>
+
+              <div class="tableWrap" style="margin-top:10px;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tür</th>
+                      <th>Dosya</th>
+                      <th>Tarih</th>
+                      <th class="right">İşlem</th>
+                    </tr>
+                  </thead>
+                  <tbody id="aBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="panelTitle" style="margin-bottom:10px;">Timeline</div>
+
+              <div class="tableWrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tarih</th>
+                      <th>Kim</th>
+                      <th>Olay</th>
+                    </tr>
+                  </thead>
+                  <tbody id="lBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- detail -->
+    </div><!-- rightPanel -->
+  </div><!-- shell -->
+</div><!-- shellWrap -->
 
 <!-- YENİ KAZA MODAL -->
 <div id="createModal" class="modal" aria-hidden="true">
   <div class="modalBackdrop" onclick="App.closeCreate()"></div>
 
-  <div class="modalPanel card" role="dialog" aria-modal="true" aria-label="Yeni Kaza Oluştur">
+  <div class="modalPanel" role="dialog" aria-modal="true" aria-label="Yeni Kaza Oluştur">
     <div class="modalHeader">
-      <h2 class="sectionTitle" style="margin:0;">Yeni Kaza Oluştur</h2>
-      <button class="secondary" type="button" onclick="App.closeCreate()">Kapat</button>
+      <div class="panelTitle">Yeni Kaza Oluştur</div>
+      <button class="btnSecondary" type="button" onclick="App.closeCreate()">Kapat</button>
     </div>
 
     <div class="modalBody">
-      <div class="row">
+      <div class="row2">
         <input id="branch" placeholder="Şube (örn. Oude Meer)" />
         <select id="severity">
           <option value="LOW">Düşük</option>
@@ -701,17 +748,17 @@
         </select>
       </div>
 
-      <div class="row">
+      <div class="row2">
         <input id="plate" placeholder="Plaka (örn. NL-AB-123)" />
         <input id="vehicleNo" placeholder="Araç No (örn. TRK-014)" />
       </div>
 
-      <div class="row">
+      <div class="row2">
         <input id="driverName" placeholder="Sürücü Adı" />
         <input id="eventAt" type="datetime-local" />
       </div>
 
-      <div class="row">
+      <div class="row2">
         <select id="accidentType">
           <option value="REAR_END">Arkadan Çarpma</option>
           <option value="SIDE">Yandan</option>
@@ -727,10 +774,10 @@
 
       <textarea id="desc" placeholder="Kısa açıklama..."></textarea>
 
-      <div class="actions" style="margin-top:10px;">
-        <button type="button" onclick="App.createCase()">Kaydet</button>
-        <button class="secondary" type="button" onclick="App.fillWithNow()">Şimdi</button>
-        <button class="secondary" type="button" onclick="App.getLocation()">Konum Al</button>
+      <div class="actions">
+        <button class="btnPrimary" type="button" onclick="App.createCase()">Kaydet</button>
+        <button class="btnSecondary" type="button" onclick="App.fillWithNow()">Şimdi</button>
+        <button class="btnSecondary" type="button" onclick="App.getLocation()">Konum Al</button>
       </div>
 
       <div class="muted" id="locHint" style="margin-top:8px;"></div>
@@ -740,7 +787,7 @@
 
 <script>
   const App = (() => {
-    const STORAGE_KEY = "nedline_accident_cases_v3";
+    const STORAGE_KEY = "nedline_accident_cases_layout_v1";
 
     const state = {
       cases: [],
@@ -749,7 +796,6 @@
       activeTab: "GENERAL"
     };
 
-    // ---------- Helpers ----------
     const $ = (id) => document.getElementById(id);
 
     function escapeHtml(s){
@@ -790,7 +836,6 @@
     }
 
     function defaultChecklist(){
-      // İsterseniz buraya şirketin standart evrak listesini genişletebiliriz
       return [
         { key:"accident_report", title:"Kaza tutanağı / karşılıklı beyan", done:false, note:"" },
         { key:"police_report", title:"Polis raporu (varsa)", done:false, note:"" },
@@ -808,31 +853,26 @@
       c.driver ??= { name:"", employeeId:"", phone:"" };
       c.thirdParty ??= { name:"", plate:"", phone:"", insurer:"", policyNo:"", driverLicense:"", notes:"" };
       c.insurance ??= { claimNo:"", status:"DRAFT", insurer:"", broker:"", notifiedAt:"", contact:"", notes:"" };
+      c.checklist ??= defaultChecklist();
       c.tasks ??= [];
       c.costs ??= [];
       c.attachments ??= [];
       c.timeline ??= [];
-      c.checklist ??= defaultChecklist();
     }
 
-    // ---------- Storage ----------
+    function nextCaseId(){
+      const year = new Date().getFullYear();
+      const prefix = `CASE-${year}-`;
+      const nums = state.cases
+        .filter(c => (c.id || "").startsWith(prefix))
+        .map(c => parseInt(String(c.id).slice(prefix.length), 10))
+        .filter(n => Number.isFinite(n));
+      const n = (nums.length ? Math.max(...nums) : 0) + 1;
+      return prefix + String(n).padStart(4,"0");
+    }
+
     function save(){
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state.cases));
-    }
-
-    function load(){
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(raw){
-        try{
-          state.cases = JSON.parse(raw) || [];
-        }catch{
-          state.cases = [];
-        }
-      }else{
-        seed();
-        save();
-      }
-      renderList();
     }
 
     function seed(){
@@ -866,37 +906,34 @@
       }];
     }
 
-    function nextCaseId(){
-      const year = new Date().getFullYear();
-      const prefix = `CASE-${year}-`;
-      const nums = state.cases
-        .filter(c => (c.id || "").startsWith(prefix))
-        .map(c => parseInt(String(c.id).slice(prefix.length), 10))
-        .filter(n => Number.isFinite(n));
-      const n = (nums.length ? Math.max(...nums) : 0) + 1;
-      return prefix + String(n).padStart(4,"0");
+    function load(){
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        try{
+          state.cases = JSON.parse(raw) || [];
+        }catch{
+          state.cases = [];
+        }
+      }else{
+        seed();
+        save();
+      }
+      renderList();
+      setTab(state.activeTab);
     }
 
-    // ---------- Tabs ----------
+    // Tabs
     function setTab(tab){
       state.activeTab = tab;
-      updateTabUI();
-    }
-
-    function updateTabUI(){
-      const tabs = document.querySelectorAll(".tabBtn");
-      tabs.forEach(btn => {
-        const t = btn.getAttribute("data-tab");
-        btn.classList.toggle("active", t === state.activeTab);
+      document.querySelectorAll(".tabBtn").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-tab") === tab);
       });
-
-      const panels = document.querySelectorAll(".tabPanel");
-      panels.forEach(p => p.classList.remove("active"));
-      const activePanel = $("tab-" + state.activeTab);
-      if(activePanel) activePanel.classList.add("active");
+      document.querySelectorAll(".tabPanel").forEach(p => p.classList.remove("active"));
+      const panel = $("tab-" + tab);
+      if(panel) panel.classList.add("active");
     }
 
-    // ---------- List ----------
+    // List
     function renderList(){
       const q = ($("q").value || "").toLowerCase().trim();
       const fStatus = $("fStatus").value || "";
@@ -924,14 +961,14 @@
               <span class="tag ${statusTagClass(c.status)}">${statusLabel(c.status)}</span>
               <span class="pill">${escapeHtml(c.severity || "-")}</span>
             </div>
-            <div class="muted">${escapeHtml(c.vehicle?.plate || "-")} • ${escapeHtml(c.driver?.name || "-")} • ${escapeHtml(c.branch || "-")}</div>
+            <div class="muted">${escapeHtml(c.vehicle?.plate || "-")} • ${escapeHtml(c.driver?.name || "-")}</div>
             <div class="muted">Olay: ${fmtDT(c.eventAt)} • Bildirim: ${fmtDT(c.reportedAt)}</div>
           </div>
         `;
       }).join("") || `<div class="muted">Kayıt bulunamadı.</div>`;
     }
 
-    // ---------- Detail ----------
+    // Detail
     function getSelected(){
       return state.cases.find(c => c.id === state.selectedId) || null;
     }
@@ -959,9 +996,9 @@
       renderAttachments(c);
       renderTimeline(c);
 
-      updateTabUI();
+      setTab(state.activeTab);
       renderList();
-      save(); // eksik alanlar defaultlandığında persist edilsin
+      save();
     }
 
     function renderGeneral(c){
@@ -1003,7 +1040,7 @@
       renderList();
     }
 
-    // ---------- Third Party ----------
+    // Third Party
     function renderThirdParty(c){
       const tp = c.thirdParty || {};
       $("tpName").value = tp.name || "";
@@ -1044,7 +1081,7 @@
       $("tpNotes").value = "";
     }
 
-    // ---------- Insurance ----------
+    // Insurance
     function renderInsurance(c){
       const ins = c.insurance || {};
       $("insClaimNo").value = ins.claimNo || "";
@@ -1085,13 +1122,12 @@
       $("insNotes").value = "";
     }
 
-    // ---------- Checklist ----------
+    // Checklist
     function renderChecklist(c){
       c.checklist ??= defaultChecklist();
-
       const doneCount = c.checklist.filter(x => x.done).length;
       const total = c.checklist.length;
-      const pct = total ? Math.round((doneCount/total) * 100) : 0;
+      const pct = total ? Math.round((doneCount/total)*100) : 0;
 
       $("checkProgressText").textContent = `${doneCount}/${total} • %${pct}`;
       $("checkProgressBar").style.width = `${pct}%`;
@@ -1110,7 +1146,7 @@
                   placeholder="Not (opsiyonel)"
                   value="${escapeHtml(item.note || "")}"
                   onblur="App.updateChecklistNote('${escapeHtml(item.key)}', this.value)" />
-                <button class="secondary" type="button" onclick="App.createTaskFromChecklist('${escapeHtml(item.key)}')">
+                <button class="btnSecondary" type="button" onclick="App.createTaskFromChecklist('${escapeHtml(item.key)}')">
                   Bu evrak için görev aç
                 </button>
               </div>
@@ -1141,7 +1177,6 @@
       it.note = (note || "").trim();
       c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: `Checklist note updated: ${it.title}` });
       save();
-      // aktif sekmeyi koruyarak tekrar render
       const currentTab = state.activeTab;
       selectCase(c.id);
       setTab(currentTab);
@@ -1153,15 +1188,12 @@
       const it = (c.checklist || []).find(x => x.key === key);
       if(!it) return;
 
-      // Görev alanını otomatik dolduralım:
       $("tTitle").value = `Evrak: ${it.title}`;
       $("tAssignee").value = "Operasyon";
       setTab("OPS");
-      updateTabUI();
-      // İsterseniz burada otomatik task da oluşturabiliriz. Şimdilik kullanıcı "Görev Ekle"ye basar.
     }
 
-    // ---------- Tasks ----------
+    // Tasks
     function renderTasks(c){
       const body = $("tBody");
       const rows = (c.tasks || []).map(t => `
@@ -1170,7 +1202,7 @@
           <td>${escapeHtml(t.assignee || "-")}</td>
           <td>${escapeHtml(t.dueAt || "-")}</td>
           <td class="right">
-            <button class="secondary" type="button" onclick="App.toggleTask('${escapeHtml(t.id)}')">
+            <button class="btnSecondary" type="button" onclick="App.toggleTask('${escapeHtml(t.id)}')">
               ${t.status === "DONE" ? "Tamam" : "Açık"}
             </button>
           </td>
@@ -1194,14 +1226,12 @@
       }
 
       const id = `TSK-${(c.tasks?.length || 0) + 1}`;
-      c.tasks = c.tasks || [];
       c.tasks.push({ id, title, assignee, dueAt, status:"OPEN" });
       c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: `Task added: ${title}` });
 
       $("tTitle").value = "";
       $("tAssignee").value = "";
       save();
-
       const currentTab = state.activeTab;
       selectCase(c.id);
       setTab(currentTab);
@@ -1216,13 +1246,12 @@
       t.status = (t.status === "DONE") ? "OPEN" : "DONE";
       c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: `Task ${t.status}: ${t.title}` });
       save();
-
       const currentTab = state.activeTab;
       selectCase(c.id);
       setTab(currentTab);
     }
 
-    // ---------- Costs ----------
+    // Costs
     function renderCosts(c){
       const body = $("cBody");
       const total = (c.costs || []).reduce((s,x) => s + (Number(x.amount) || 0), 0);
@@ -1255,7 +1284,6 @@
       }
 
       const id = `CST-${(c.costs?.length || 0) + 1}`;
-      c.costs = c.costs || [];
       c.costs.push({ id, type, amount, currency:"EUR", supplier, invoiceNo });
       c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: `Cost added: ${type} ${amount} EUR` });
 
@@ -1264,13 +1292,12 @@
       $("cInvoice").value = "";
 
       save();
-
       const currentTab = state.activeTab;
       selectCase(c.id);
       setTab(currentTab);
     }
 
-    // ---------- Attachments ----------
+    // Attachments
     function renderAttachments(c){
       const body = $("aBody");
       const rows = (c.attachments || []).map(a => `
@@ -1279,8 +1306,8 @@
           <td>${escapeHtml(a.name)}</td>
           <td>${fmtDT(a.createdAt)}</td>
           <td class="right">
-            <button class="secondary" type="button" onclick="App.downloadAttachment('${escapeHtml(a.id)}')">İndir</button>
-            <button class="secondary" type="button" onclick="App.removeAttachment('${escapeHtml(a.id)}')">Sil</button>
+            <button class="btnSecondary" type="button" onclick="App.downloadAttachment('${escapeHtml(a.id)}')">İndir</button>
+            <button class="btnSecondary" type="button" onclick="App.removeAttachment('${escapeHtml(a.id)}')">Sil</button>
           </td>
         </tr>
       `).join("");
@@ -1303,13 +1330,8 @@
       const reader = new FileReader();
       reader.onload = () => {
         const id = `ATT-${(c.attachments?.length || 0) + 1}`;
-        c.attachments = c.attachments || [];
-        c.attachments.push({
-          id, type, name: f.name, createdAt: nowLocalIsoMin(),
-          dataUrl: reader.result
-        });
+        c.attachments.push({ id, type, name: f.name, createdAt: nowLocalIsoMin(), dataUrl: reader.result });
         c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: `Attachment uploaded: ${f.name}` });
-
         $("aFile").value = "";
         save();
 
@@ -1317,7 +1339,6 @@
         selectCase(c.id);
         setTab(currentTab);
       };
-
       reader.onerror = () => alert("Dosya okunamadı.");
       reader.readAsDataURL(f);
     }
@@ -1337,7 +1358,6 @@
     function removeAttachment(attId){
       const c = getSelected();
       if(!c) return;
-
       c.attachments = (c.attachments || []).filter(x => x.id !== attId);
       c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: `Attachment removed: ${attId}` });
       save();
@@ -1347,7 +1367,7 @@
       setTab(currentTab);
     }
 
-    // ---------- Timeline ----------
+    // Timeline
     function renderTimeline(c){
       const body = $("lBody");
       const items = (c.timeline || []).slice().sort((a,b) => (b.at || "").localeCompare(a.at || ""));
@@ -1362,7 +1382,7 @@
       body.innerHTML = rows || `<tr><td colspan="3" class="muted">Timeline boş.</td></tr>`;
     }
 
-    // ---------- Create modal / form ----------
+    // Create modal
     function openCreate(){
       $("createModal").classList.add("open");
       $("createModal").setAttribute("aria-hidden","false");
@@ -1443,24 +1463,21 @@
         tasks: [],
         costs: [],
         attachments: [],
-        timeline: [
-          { at: reportedAt, by: "User", event: "Case created" }
-        ]
+        timeline: [{ at: reportedAt, by: "User", event: "Case created" }]
       };
 
       state.cases.push(c);
       save();
 
-      // form kısmi temizle
       $("desc").value = "";
-
       closeCreate();
-      renderList();
+
       state.activeTab = "GENERAL";
+      renderList();
       selectCase(c.id);
     }
 
-    // ---------- Export / Import / Reset ----------
+    // Export/Import/Reset
     function exportData(){
       const blob = new Blob([JSON.stringify(state.cases, null, 2)], { type:"application/json" });
       const url = URL.createObjectURL(blob);
@@ -1475,7 +1492,6 @@
       const inp = document.createElement("input");
       inp.type = "file";
       inp.accept = "application/json";
-
       inp.onchange = () => {
         const f = inp.files[0];
         if(!f) return;
@@ -1497,7 +1513,6 @@
         };
         r.readAsText(f);
       };
-
       inp.click();
     }
 
@@ -1516,17 +1531,18 @@
       alert("Sıfırlandı.");
     }
 
-    // ---------- Global shortcuts ----------
+    // Global
     document.addEventListener("keydown", (e) => {
-      if(e.key === "Escape"){
-        closeCreate();
-      }
+      if(e.key === "Escape") closeCreate();
     });
 
-    // ---------- init ----------
     load();
 
     return {
+      // header actions
+      exportData, importData, resetAll,
+      // create modal
+      openCreate, closeCreate, fillWithNow, getLocation, createCase,
       // list/detail
       renderList, selectCase, updateStatus, deleteCase,
       // tabs
@@ -1538,11 +1554,7 @@
       // checklist
       toggleChecklist, updateChecklistNote, createTaskFromChecklist,
       // ops
-      addTask, toggleTask, addCost, addAttachment, downloadAttachment, removeAttachment,
-      // modal + create
-      openCreate, closeCreate, fillWithNow, getLocation, createCase,
-      // export/import/reset
-      exportData, importData, resetAll
+      addTask, toggleTask, addCost, addAttachment, downloadAttachment, removeAttachment
     };
   })();
 
