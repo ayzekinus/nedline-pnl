@@ -3,282 +3,444 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Kaza Takip - MVP Demo</title>
- <style>
-  :root{
-    --bg:#f6f7fb;
-    --card:#ffffff;
-    --muted:#5b6b86;
-    --text:#0f172a;
-    --line:#e5e7eb;
-    --btn:#2563eb;
-  }
+  <title>Kaza Takip - MVP</title>
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#5b6b86;
+      --line:#e5e7eb;
+      --primary:#2563eb;
+      --shadow: 0 10px 26px rgba(15,23,42,.08);
+      --shadow2: 0 6px 18px rgba(15,23,42,.06);
+    }
 
-  body{
-    margin:0;
-    font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial;
-    background:var(--bg);
-    color:var(--text);
-  }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:var(--bg);
+      color:var(--text);
+    }
 
-  header{
-    padding:16px 20px;
-    border-bottom:1px solid var(--line);
-    display:flex;
-    gap:12px;
-    align-items:center;
-    background:var(--card);
-  }
+    header{
+      position: sticky;
+      top:0;
+      z-index:20;
+      background:var(--card);
+      border-bottom:1px solid var(--line);
+      padding:14px 16px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
 
-  .wrap{
-    display:grid;
-    grid-template-columns: 360px 1fr;
-    gap:16px;
-    padding:16px;
-  }
+    header h1{
+      margin:0;
+      font-size:16px;
+      font-weight:700;
+      letter-spacing:.2px;
+    }
 
-  .card{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:14px;
-    padding:14px;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-  }
+    .muted{ color:var(--muted); font-size:12px; }
 
-  .muted{ color:var(--muted); font-size:12px; }
+    .headerActions{
+      margin-left:auto;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
 
-  input, select, textarea, button{
-    width:100%;
-    box-sizing:border-box;
-    border-radius:10px;
-    border:1px solid var(--line);
-    background:#ffffff;
-    color:var(--text);
-    padding:10px;
-  }
+    .app{
+      display:grid;
+      grid-template-columns: 1fr 420px;
+      gap:16px;
+      padding:16px;
+      align-items:start;
+    }
 
-  textarea{ min-height:74px; resize:vertical; }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      box-shadow: var(--shadow2);
+    }
 
-  button{
-    background:var(--btn);
-    border:none;
-    font-weight:650;
-    cursor:pointer;
-    color:#ffffff;
-  }
+    .sectionTitle{
+      margin:0 0 10px 0;
+      font-size:13px;
+      font-weight:700;
+    }
 
-  button.secondary{
-    background:#ffffff;
-    border:1px solid var(--line);
-    color:var(--text);
-  }
+    input, select, textarea, button{
+      width:100%;
+      border-radius:10px;
+      border:1px solid var(--line);
+      padding:10px;
+      background:#fff;
+      color:var(--text);
+      font-size:16px; /* mobil zoom engeli */
+    }
 
-  .item{
-    padding:10px;
-    border:1px solid var(--line);
-    border-radius:12px;
-    cursor:pointer;
-    background:#ffffff;
-  }
+    textarea{ min-height:84px; resize:vertical; }
 
-  .item:hover{ border-color:#93c5fd; }
+    button{
+      cursor:pointer;
+      border:none;
+      background:var(--primary);
+      color:#fff;
+      font-weight:700;
+    }
 
-  .pill{
-    display:inline-block;
-    padding:2px 8px;
-    border:1px solid var(--line);
-    border-radius:999px;
-    font-size:11px;
-    margin-left:6px;
-    color:var(--muted);
-    background:#f9fafb;
-  }
+    button.secondary{
+      background:#fff;
+      border:1px solid var(--line);
+      color:var(--text);
+      font-weight:700;
+    }
 
-  .tbl{ width:100%; border-collapse:collapse; font-size:13px; }
-  .tbl th,.tbl td{ border-bottom:1px solid var(--line); padding:8px 6px; text-align:left; vertical-align:top; }
+    button.danger{
+      background:#dc2626;
+      color:#fff;
+    }
 
-  .danger{ background:#dc2626; color:#fff; }
-  .ok{ background:#16a34a; color:#fff; }
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-bottom:10px;
+    }
 
-  .tag{
-    padding:2px 8px;
-    border-radius:999px;
-    font-size:11px;
-    display:inline-block;
-  }
+    .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
 
-   /* Mobil uyumluluk */
-.headerActions{
-  margin-left:auto;
-  display:flex;
-  gap:8px;
-}
+    .actions button{
+      width:auto;
+      padding:10px 12px;
+      border-radius:10px;
+    }
 
-.actions{
-  display:flex;
-  gap:8px;
-}
+    .rightCol{
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
 
-.tableWrap{
-  overflow-x:auto;
-  -webkit-overflow-scrolling: touch;
-  border-radius: 12px;
-}
+    .listHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
 
-/* Tablet ve altı: iki kolon -> tek kolon */
-@media (max-width: 980px){
-  .wrap{
-    grid-template-columns: 1fr;
-    padding:12px;
-  }
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:10px;
+    }
 
-  header{
-    flex-wrap: wrap;
-    gap:10px;
-    position: sticky;
-    top:0;
-    z-index:10;
-  }
+    .item{
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px;
+      cursor:pointer;
+      background:#fff;
+      transition: border-color .12s ease, box-shadow .12s ease;
+    }
 
-  .headerActions{
-    width:100%;
-    margin-left:0;
-    justify-content:flex-start;
-    flex-wrap: wrap;
-  }
+    .item:hover{
+      border-color:#93c5fd;
+      box-shadow: 0 6px 16px rgba(37,99,235,.08);
+    }
 
-  .headerActions button{
-    width:auto;
-  }
-}
+    .item.active{
+      border-color: var(--primary);
+      box-shadow: 0 10px 22px rgba(37,99,235,.14);
+    }
 
-/* Mobil: formlar ve bölümler tek kolona, butonlar satıra kırılır */
-@media (max-width: 700px){
-  .row{
-    grid-template-columns: 1fr;
-  }
+    .pill{
+      display:inline-block;
+      padding:2px 8px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      font-size:11px;
+      color:var(--muted);
+      background:#f9fafb;
+      margin-left:6px;
+      vertical-align:middle;
+    }
 
-  .grid2,
-  .split{
-    grid-template-columns: 1fr;
-  }
+    .tag{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:800;
+      margin-left:8px;
+      vertical-align:middle;
+      border:1px solid var(--line);
+    }
 
-  .actions{
-    flex-wrap: wrap;
-  }
+    .tag-open{ background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
+    .tag-review{ background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
+    .tag-closed{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
 
-  .actions button{
-    flex: 1;
-    min-width: 140px;
-  }
+    .detailTop{
+      display:flex;
+      align-items:flex-start;
+      gap:12px;
+      flex-wrap:wrap;
+    }
 
-  /* iOS input zoom engeli + daha iyi okunabilirlik */
-  input, select, textarea, button{
-    font-size: 16px;
-  }
+    .detailTopLeft{ flex:1; min-width: 240px; }
+    .detailTopRight{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .detailTopRight select{ width:auto; min-width: 140px; }
+    .detailTopRight button{ width:auto; }
 
-  /* Kart iç boşlukları mobilde daha rahat */
-  .card{
-    padding:12px;
-  }
-}
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      margin-top:12px;
+    }
 
-</style>
+    .split{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      margin-top:12px;
+    }
 
+    .small{ font-size:13px; line-height:1.35; }
+
+    .tbl{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+    }
+    .tbl th, .tbl td{
+      border-bottom:1px solid var(--line);
+      padding:8px 6px;
+      text-align:left;
+      vertical-align:top;
+    }
+    .right{ text-align:right; }
+
+    .tableWrap{
+      overflow-x:auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#fff;
+    }
+    .tableWrap table{ min-width: 520px; }
+
+    /* Tabs */
+    .tabs{
+      display:flex;
+      gap:8px;
+      margin-top:12px;
+      padding-bottom:6px;
+      overflow-x:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tabBtn{
+      width:auto;
+      flex:0 0 auto;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      font-weight:800;
+      font-size:13px;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .tabBtn.active{
+      border-color: rgba(37,99,235,.35);
+      background: rgba(37,99,235,.08);
+      color: #1d4ed8;
+    }
+    .tabPanel{
+      display:none;
+      margin-top:12px;
+    }
+    .tabPanel.active{ display:block; }
+
+    /* Checklist */
+    .checkHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+    .progress{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .bar{
+      width: 180px;
+      height: 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      border: 1px solid var(--line);
+      overflow:hidden;
+    }
+    .barFill{
+      height:100%;
+      width:0%;
+      background: rgba(37,99,235,.6);
+    }
+    .checkList{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .checkItem{
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px;
+      background:#fff;
+      display:grid;
+      grid-template-columns: 24px 1fr;
+      gap:10px;
+      align-items:start;
+    }
+    .checkItem input[type="checkbox"]{
+      width:18px;
+      height:18px;
+      margin-top:2px;
+    }
+    .checkTitle{
+      font-weight:800;
+      font-size:13px;
+    }
+    .checkMeta{
+      margin-top:6px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .checkMeta input{
+      font-size:14px;
+      padding:8px 10px;
+    }
+
+    /* Modal */
+    .modal{
+      position:fixed;
+      inset:0;
+      display:none;
+      z-index:1000;
+    }
+    .modal.open{ display:block; }
+    .modalBackdrop{
+      position:absolute;
+      inset:0;
+      background: rgba(15,23,42,.45);
+    }
+    .modalPanel{
+      position:relative;
+      width: min(820px, calc(100% - 20px));
+      margin: 10px auto;
+      max-height: calc(100vh - 20px);
+      overflow:auto;
+      box-shadow: var(--shadow);
+    }
+    .modalHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+      position: sticky;
+      top:0;
+      background: var(--card);
+      padding: 10px 10px 6px 10px;
+      border-bottom: 1px solid var(--line);
+      border-radius: 12px 12px 0 0;
+      z-index: 5;
+    }
+    .modalBody{ padding: 10px; }
+
+    /* Mobil: önce liste, sonra detay */
+    @media (max-width: 980px){
+      .app{ grid-template-columns: 1fr; padding:12px; }
+      .rightCol{ order:1; }
+      #detailCard{ order:2; }
+      .grid2, .split{ grid-template-columns: 1fr; }
+      .row{ grid-template-columns: 1fr; }
+      .headerActions{ margin-left:0; width:100%; justify-content:flex-start; }
+      .checkMeta{ grid-template-columns: 1fr; }
+      .bar{ width: 100%; max-width: 260px; }
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>Kaza Takip – MVP Demo</h1>
-    <span class="muted">LocalStorage tabanlı örnek</span>
-    
-    <div style="margin-left:auto; display:flex; gap:8px;">
-      <div class="headerActions">
-      <button class="secondary" onclick="exportData()">Export JSON</button>
-      <button class="secondary" onclick="importData()">Import JSON</button>
-      <button class="secondary danger" onclick="resetAll()">Sıfırla</button>
-    </div>
-  </header>
 
-  <div class="wrap">
-    <!-- LEFT: LIST + CREATE -->
-    <div class="card">
-      <h2 class="sectionTitle">Kaza Listesi</h2>
-      <div class="row">
-        <input id="q" placeholder="Ara (plaka, sürücü, case no)..." oninput="renderList()" />
-        <select id="fStatus" onchange="renderList()">
-          <option value="">Tümü</option>
-          <option value="OPEN">Açık</option>
-          <option value="IN_REVIEW">İncelemede</option>
-          <option value="CLOSED">Kapalı</option>
-        </select>
-      </div>
-      <div style="height:10px"></div>
-      <div id="list" class="list"></div>
+<header>
+  <h1>Kaza Takip – MVP</h1>
+  <span class="muted">LocalStorage tabanlı demo</span>
 
-      <div style="height:14px"></div>
-      <h2 class="sectionTitle">Yeni Kaza Oluştur</h2>
-      <div class="row">
-        <input id="branch" placeholder="Şube (örn. Oude Meer)" />
-        <select id="severity">
-          <option value="LOW">Düşük</option>
-          <option value="MEDIUM" selected>Orta</option>
-          <option value="HIGH">Yüksek</option>
-        </select>
-      </div>
-      <div class="row">
-        <input id="plate" placeholder="Plaka (örn. NL-AB-123)" />
-        <input id="vehicleNo" placeholder="Araç No (örn. TRK-014)" />
-      </div>
-      <div class="row">
-        <input id="driverName" placeholder="Sürücü Adı" />
-        <input id="eventAt" type="datetime-local" />
-      </div>
-      <div class="row">
-        <select id="accidentType">
-          <option value="REAR_END">Arkadan Çarpma</option>
-          <option value="SIDE">Yandan</option>
-          <option value="PARKING">Park / Manevra</option>
-          <option value="SINGLE">Tek Taraf</option>
-          <option value="LOAD_DAMAGE">Yük Hasarı</option>
-        </select>
-        <select id="police">
-          <option value="false">Polis Yok</option>
-          <option value="true">Polis Var</option>
-        </select>
-      </div>
-      <textarea id="desc" placeholder="Kısa açıklama..."></textarea>
-      <div style="height:10px"></div>
-      <div class="actions">
-        <button onclick="createCase()">Kaydet</button>
-        <button class="secondary" onclick="fillWithNow()">Şimdi</button>
-        <button class="secondary" onclick="getLocation()">Konum Al</button>
-      </div>
-      <div class="muted" id="locHint" style="margin-top:8px;"></div>
+  <div class="headerActions">
+    <button class="secondary" type="button" onclick="App.exportData()">Export JSON</button>
+    <button class="secondary" type="button" onclick="App.importData()">Import JSON</button>
+    <button class="danger" type="button" onclick="App.resetAll()">Sıfırla</button>
+  </div>
+</header>
+
+<div class="app">
+  <!-- SOL: DETAY -->
+  <div class="card" id="detailCard">
+    <div id="detailEmpty" class="muted">
+      Sağ taraftan bir kaza seçin veya “Yeni Kaza” oluşturun.
     </div>
 
-    <!-- RIGHT: DETAILS -->
-    <div class="card">
-      <div id="detailEmpty" class="muted">
-        Soldan bir kaza seçin veya yeni kaza oluşturun.
-      </div>
-
-      <div id="detail" style="display:none;">
-        <div style="display:flex; align-items:flex-start; gap:12px;">
-          <div style="flex:1;">
-            <h2 style="margin:0; font-size:16px;" id="dTitle"></h2>
-            <div class="muted" id="dMeta"></div>
-          </div>
-          <div style="display:flex; gap:8px;">
-            <select id="dStatus" onchange="updateStatus()">
-              <option value="OPEN">Açık</option>
-              <option value="IN_REVIEW">İncelemede</option>
-              <option value="CLOSED">Kapalı</option>
-            </select>
-            <button class="secondary" onclick="deleteCase()">Sil</button>
-          </div>
+    <div id="detail" style="display:none;">
+      <div class="detailTop">
+        <div class="detailTopLeft">
+          <h2 style="margin:0; font-size:16px;" id="dTitle"></h2>
+          <div class="muted" id="dMeta"></div>
         </div>
+        <div class="detailTopRight">
+          <select id="dStatus" onchange="App.updateStatus()">
+            <option value="OPEN">Açık</option>
+            <option value="IN_REVIEW">İncelemede</option>
+            <option value="CLOSED">Kapalı</option>
+          </select>
+          <button class="secondary" type="button" onclick="App.deleteCase()">Sil</button>
+        </div>
+      </div>
 
-        <div style="height:12px"></div>
+      <!-- Tabs -->
+      <div class="tabs" id="tabs">
+        <button class="tabBtn" data-tab="GENERAL" onclick="App.setTab('GENERAL')">Genel</button>
+        <button class="tabBtn" data-tab="THIRD" onclick="App.setTab('THIRD')">Karşı Taraf</button>
+        <button class="tabBtn" data-tab="INSURANCE" onclick="App.setTab('INSURANCE')">Sigorta</button>
+        <button class="tabBtn" data-tab="CHECKLIST" onclick="App.setTab('CHECKLIST')">Evrak Checklist</button>
+        <button class="tabBtn" data-tab="OPS" onclick="App.setTab('OPS')">Operasyon</button>
+      </div>
+
+      <!-- GENERAL -->
+      <div class="tabPanel" id="tab-GENERAL">
         <div class="grid2">
           <div class="card" style="padding:12px;">
             <h3 class="sectionTitle">Özet</h3>
@@ -289,8 +451,93 @@
             <div class="small" id="dLocation"></div>
           </div>
         </div>
+      </div>
 
-        <div style="height:12px"></div>
+      <!-- THIRD PARTY -->
+      <div class="tabPanel" id="tab-THIRD">
+        <div class="card" style="padding:12px;">
+          <h3 class="sectionTitle">Karşı Taraf Bilgileri</h3>
+
+          <div class="row">
+            <input id="tpName" placeholder="Karşı taraf adı / firma" />
+            <input id="tpPhone" placeholder="Telefon" />
+          </div>
+
+          <div class="row">
+            <input id="tpPlate" placeholder="Karşı taraf plaka" />
+            <input id="tpInsurer" placeholder="Karşı taraf sigorta şirketi" />
+          </div>
+
+          <div class="row">
+            <input id="tpPolicyNo" placeholder="Poliçe No (varsa)" />
+            <input id="tpDriverLicense" placeholder="Ehliyet No (varsa)" />
+          </div>
+
+          <textarea id="tpNotes" placeholder="Notlar (tanık bilgisi, olay detayı vb.)"></textarea>
+
+          <div class="actions" style="margin-top:10px;">
+            <button type="button" onclick="App.saveThirdParty()">Kaydet</button>
+            <button class="secondary" type="button" onclick="App.clearThirdParty()">Temizle</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- INSURANCE -->
+      <div class="tabPanel" id="tab-INSURANCE">
+        <div class="card" style="padding:12px;">
+          <h3 class="sectionTitle">Sigorta Süreci</h3>
+
+          <div class="row">
+            <input id="insClaimNo" placeholder="Sigorta Dosya No" />
+            <select id="insStatus">
+              <option value="DRAFT">Taslak</option>
+              <option value="SUBMITTED">Bildirildi</option>
+              <option value="IN_PROGRESS">Süreçte</option>
+              <option value="APPROVED">Onaylandı</option>
+              <option value="REJECTED">Reddedildi</option>
+              <option value="CLOSED">Kapandı</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <input id="insInsurer" placeholder="Sigorta şirketi (bizim)" />
+            <input id="insBroker" placeholder="Broker / Acenta" />
+          </div>
+
+          <div class="row">
+            <input id="insNotifiedAt" type="date" />
+            <input id="insContact" placeholder="İlgili kişi / iletişim" />
+          </div>
+
+          <textarea id="insNotes" placeholder="Sigorta notları / yazışma özeti"></textarea>
+
+          <div class="actions" style="margin-top:10px;">
+            <button type="button" onclick="App.saveInsurance()">Kaydet</button>
+            <button class="secondary" type="button" onclick="App.clearInsurance()">Temizle</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHECKLIST -->
+      <div class="tabPanel" id="tab-CHECKLIST">
+        <div class="card" style="padding:12px;">
+          <div class="checkHeader">
+            <div>
+              <h3 class="sectionTitle" style="margin:0;">Evrak Checklist</h3>
+              <div class="muted">Eksik evraklar için görev açabilirsiniz (Operasyon sekmesi).</div>
+            </div>
+            <div class="progress">
+              <div class="muted" id="checkProgressText">0/0</div>
+              <div class="bar"><div class="barFill" id="checkProgressBar"></div></div>
+            </div>
+          </div>
+
+          <div class="checkList" id="checkList"></div>
+        </div>
+      </div>
+
+      <!-- OPS -->
+      <div class="tabPanel" id="tab-OPS">
         <div class="split">
           <div class="card" style="padding:12px;">
             <h3 class="sectionTitle">Görevler</h3>
@@ -300,14 +547,22 @@
             </div>
             <div class="row">
               <input id="tAssignee" placeholder="Atanan (örn. Operasyon)" />
-              <button onclick="addTask()">Görev Ekle</button>
+              <button type="button" onclick="App.addTask()">Görev Ekle</button>
             </div>
-            <div style="height:8px"></div>
-            <div class="tableWrap">
-            <table class="tbl">
-              <thead><tr><th>Başlık</th><th>Atanan</th><th>Son Tarih</th><th class="right">Durum</th></tr></thead>
-              <tbody id="tBody"></tbody>
-            </table>
+
+            <div class="tableWrap" style="margin-top:10px;">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Başlık</th>
+                    <th>Atanan</th>
+                    <th>Son Tarih</th>
+                    <th class="right">Durum</th>
+                  </tr>
+                </thead>
+                <tbody id="tBody"></tbody>
+              </table>
+            </div>
           </div>
 
           <div class="card" style="padding:12px;">
@@ -327,18 +582,30 @@
               <input id="cSupplier" placeholder="Tedarikçi" />
               <input id="cInvoice" placeholder="Fatura No" />
             </div>
-            <button onclick="addCost()">Maliyet Ekle</button>
-            <div style="height:8px"></div>
-            <div class="tableWrap">
-            <table class="tbl">
-              <thead><tr><th>Tür</th><th>Tedarikçi</th><th>Fatura</th><th class="right">Tutar</th></tr></thead>
-              <tbody id="cBody"></tbody>
-              <tfoot><tr><td colspan="3" class="right"><b>Toplam</b></td><td class="right" id="cTotal"></td></tr></tfoot>
-            </table>
+            <button type="button" onclick="App.addCost()">Maliyet Ekle</button>
+
+            <div class="tableWrap" style="margin-top:10px;">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Tür</th>
+                    <th>Tedarikçi</th>
+                    <th>Fatura</th>
+                    <th class="right">Tutar</th>
+                  </tr>
+                </thead>
+                <tbody id="cBody"></tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="3" class="right"><b>Toplam</b></td>
+                    <td class="right" id="cTotal"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
           </div>
         </div>
 
-        <div style="height:12px"></div>
         <div class="split">
           <div class="card" style="padding:12px;">
             <h3 class="sectionTitle">Ekler (Foto/Dosya)</h3>
@@ -352,474 +619,935 @@
               </select>
               <input id="aFile" type="file" />
             </div>
-            <button onclick="addAttachment()">Yükle</button>
-            <div class="muted" style="margin-top:6px;">Demo: Dosyayı base64 olarak kaydeder (sınırlı).</div>
-            <div style="height:8px"></div>
-            <div class="tableWrap">
-            <table class="tbl">
-              <thead><tr><th>Tür</th><th>Dosya</th><th>Tarih</th><th class="right">İşlem</th></tr></thead>
-              <tbody id="aBody"></tbody>
-            </table>
+            <button type="button" onclick="App.addAttachment()">Yükle</button>
+            <div class="muted" style="margin-top:8px;">Demo: Dosyalar base64 ile LocalStorage’a yazılır (boyut sınırlı).</div>
+
+            <div class="tableWrap" style="margin-top:10px;">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Tür</th>
+                    <th>Dosya</th>
+                    <th>Tarih</th>
+                    <th class="right">İşlem</th>
+                  </tr>
+                </thead>
+                <tbody id="aBody"></tbody>
+              </table>
+            </div>
           </div>
 
           <div class="card" style="padding:12px;">
             <h3 class="sectionTitle">Timeline</h3>
-         <div class="tableWrap">   
-            <table class="tbl">
-              <thead><tr><th>Tarih</th><th>Kim</th><th>Olay</th></tr></thead>
-              <tbody id="lBody"></tbody>
-            </table>
+            <div class="tableWrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>Tarih</th>
+                    <th>Kim</th>
+                    <th>Olay</th>
+                  </tr>
+                </thead>
+                <tbody id="lBody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
-
       </div>
+
     </div>
   </div>
 
+  <!-- SAĞ: LİSTE -->
+  <div class="rightCol">
+    <div class="card">
+      <div class="listHeader">
+        <h2 class="sectionTitle" style="margin:0;">Kaza Listesi</h2>
+        <button type="button" onclick="App.openCreate()">Yeni Kaza</button>
+      </div>
+
+      <div class="row">
+        <input id="q" placeholder="Ara (plaka, sürücü, case no)..." oninput="App.renderList()" />
+        <select id="fStatus" onchange="App.renderList()">
+          <option value="">Tümü</option>
+          <option value="OPEN">Açık</option>
+          <option value="IN_REVIEW">İncelemede</option>
+          <option value="CLOSED">Kapalı</option>
+        </select>
+      </div>
+
+      <div id="list" class="list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- YENİ KAZA MODAL -->
+<div id="createModal" class="modal" aria-hidden="true">
+  <div class="modalBackdrop" onclick="App.closeCreate()"></div>
+
+  <div class="modalPanel card" role="dialog" aria-modal="true" aria-label="Yeni Kaza Oluştur">
+    <div class="modalHeader">
+      <h2 class="sectionTitle" style="margin:0;">Yeni Kaza Oluştur</h2>
+      <button class="secondary" type="button" onclick="App.closeCreate()">Kapat</button>
+    </div>
+
+    <div class="modalBody">
+      <div class="row">
+        <input id="branch" placeholder="Şube (örn. Oude Meer)" />
+        <select id="severity">
+          <option value="LOW">Düşük</option>
+          <option value="MEDIUM" selected>Orta</option>
+          <option value="HIGH">Yüksek</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <input id="plate" placeholder="Plaka (örn. NL-AB-123)" />
+        <input id="vehicleNo" placeholder="Araç No (örn. TRK-014)" />
+      </div>
+
+      <div class="row">
+        <input id="driverName" placeholder="Sürücü Adı" />
+        <input id="eventAt" type="datetime-local" />
+      </div>
+
+      <div class="row">
+        <select id="accidentType">
+          <option value="REAR_END">Arkadan Çarpma</option>
+          <option value="SIDE">Yandan</option>
+          <option value="PARKING">Park / Manevra</option>
+          <option value="SINGLE">Tek Taraf</option>
+          <option value="LOAD_DAMAGE">Yük Hasarı</option>
+        </select>
+        <select id="police">
+          <option value="false">Polis Yok</option>
+          <option value="true">Polis Var</option>
+        </select>
+      </div>
+
+      <textarea id="desc" placeholder="Kısa açıklama..."></textarea>
+
+      <div class="actions" style="margin-top:10px;">
+        <button type="button" onclick="App.createCase()">Kaydet</button>
+        <button class="secondary" type="button" onclick="App.fillWithNow()">Şimdi</button>
+        <button class="secondary" type="button" onclick="App.getLocation()">Konum Al</button>
+      </div>
+
+      <div class="muted" id="locHint" style="margin-top:8px;"></div>
+    </div>
+  </div>
+</div>
+
 <script>
-  const STORAGE_KEY = "accident_cases_v1";
-  let state = { cases: [], selectedId: null, draftLocation: null };
+  const App = (() => {
+    const STORAGE_KEY = "nedline_accident_cases_v3";
 
-  function load() {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      state.cases = JSON.parse(raw);
-    } else {
-      seed();
-      save();
-    }
-    renderList();
-  }
-
-  function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.cases));
-  }
-
-  function nowIsoLocal() {
-    const d = new Date();
-    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().slice(0,16);
-  }
-
-  function seed() {
-    state.cases = [{
-      id: "CASE-2026-0001",
-      status: "OPEN",
-      severity: "MEDIUM",
-      branch: "Oude Meer",
-      eventAt: "2026-01-02T09:15",
-      reportedAt: "2026-01-02T09:22",
-      location: { lat: 52.3031, lon: 4.7639, address: "1438AN Oude Meer, Netherlands" },
-      accidentType: "REAR_END",
-      injury: false,
-      police: true,
-      description: "Trafikte ani fren sonucu arkadan çarpma.",
-      vehicle: { plate: "NL-AB-123", vehicleNo: "TRK-014", trailerNo: "TRL-209" },
-      driver: { name: "Ahmet Yılmaz", employeeId: "EMP-1021", phone: "" },
-      thirdParty: { name: "", plate: "", phone: "", insurer: "" },
-      attachments: [],
-      tasks: [
-        { id:"TSK-1", title:"Tutanak yükle", assignee:"Operasyon", dueAt:"2026-01-03", status:"OPEN" }
-      ],
-      costs: [
-        { id:"CST-1", type:"TOWING", amount:220.0, currency:"EUR", supplier:"TowCo", invoiceNo:"TW-5512" }
-      ],
-      timeline: [
-        { at:"2026-01-02T09:22", by:"Driver", event:"Case created" }
-      ]
-    }];
-  }
-
-  function nextCaseId() {
-    const year = new Date().getFullYear();
-    const n = state.cases.length + 1;
-    return `CASE-${year}-${String(n).padStart(4,'0')}`;
-  }
-
-  function renderList() {
-    const q = (document.getElementById("q").value || "").toLowerCase().trim();
-    const fStatus = document.getElementById("fStatus").value;
-    const list = document.getElementById("list");
-
-    const filtered = state.cases
-      .filter(c => !fStatus || c.status === fStatus)
-      .filter(c => {
-        if (!q) return true;
-        const hay = [
-          c.id, c.branch, c.vehicle?.plate, c.vehicle?.vehicleNo, c.driver?.name, c.description
-        ].join(" ").toLowerCase();
-        return hay.includes(q);
-      })
-      .sort((a,b) => (b.reportedAt || "").localeCompare(a.reportedAt || ""));
-
-    list.innerHTML = filtered.map(c => {
-      const statusTag = c.status === "CLOSED" ? "ok" : (c.status === "IN_REVIEW" ? "" : "danger");
-      const statusLabel = c.status === "OPEN" ? "Açık" : (c.status === "IN_REVIEW" ? "İncelemede" : "Kapalı");
-      return `
-        <div class="item" onclick="selectCase('${c.id.replaceAll("'","")}')">
-          <div><b>${c.id}</b> <span class="tag ${statusTag}">${statusLabel}</span>
-            <span class="pill">${c.severity}</span>
-          </div>
-          <div class="muted">${c.vehicle?.plate || "-"} • ${c.driver?.name || "-"} • ${c.branch || "-"}</div>
-          <div class="muted">Olay: ${fmtDT(c.eventAt)} • Bildirim: ${fmtDT(c.reportedAt)}</div>
-        </div>
-      `;
-    }).join("") || `<div class="muted">Kayıt bulunamadı.</div>`;
-  }
-
-  function fmtDT(s) {
-    if (!s) return "-";
-    return s.replace("T", " ");
-  }
-
-  function fillWithNow() {
-    document.getElementById("eventAt").value = nowIsoLocal();
-  }
-
-  function getLocation() {
-    const hint = document.getElementById("locHint");
-    hint.textContent = "Konum alınıyor...";
-    if (!navigator.geolocation) {
-      hint.textContent = "Tarayıcı konum servisleri desteklemiyor.";
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        state.draftLocation = {
-          lat: Number(pos.coords.latitude.toFixed(6)),
-          lon: Number(pos.coords.longitude.toFixed(6)),
-          address: "—"
-        };
-        hint.textContent = `Konum alındı: ${state.draftLocation.lat}, ${state.draftLocation.lon}`;
-      },
-      () => { hint.textContent = "Konum alınamadı (izin verilmemiş olabilir)."; },
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
-  }
-
-  function createCase() {
-    const branch = document.getElementById("branch").value.trim();
-    const severity = document.getElementById("severity").value;
-    const plate = document.getElementById("plate").value.trim();
-    const vehicleNo = document.getElementById("vehicleNo").value.trim();
-    const driverName = document.getElementById("driverName").value.trim();
-    const eventAt = document.getElementById("eventAt").value || nowIsoLocal();
-    const accidentType = document.getElementById("accidentType").value;
-    const police = document.getElementById("police").value === "true";
-    const desc = document.getElementById("desc").value.trim();
-
-    if (!plate || !driverName) {
-      alert("Plaka ve Sürücü Adı zorunludur.");
-      return;
-    }
-
-    const id = nextCaseId();
-    const reportedAt = nowIsoLocal();
-    const c = {
-      id,
-      status: "OPEN",
-      severity,
-      branch,
-      eventAt,
-      reportedAt,
-      location: state.draftLocation || { lat:null, lon:null, address:"—" },
-      accidentType,
-      injury: false,
-      police,
-      description: desc,
-      vehicle: { plate, vehicleNo, trailerNo:"" },
-      driver: { name: driverName, employeeId:"", phone:"" },
-      thirdParty: { name:"", plate:"", phone:"", insurer:"" },
-      attachments: [],
-      tasks: [],
-      costs: [],
-      timeline: [
-        { at: reportedAt, by: "User", event: "Case created" }
-      ]
+    const state = {
+      cases: [],
+      selectedId: null,
+      draftLocation: null,
+      activeTab: "GENERAL"
     };
 
-    state.cases.push(c);
-    save();
-    renderList();
-    selectCase(id);
+    // ---------- Helpers ----------
+    const $ = (id) => document.getElementById(id);
 
-    // reset create form
-    document.getElementById("desc").value = "";
-  }
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;");
+    }
 
-  function selectCase(id) {
-    state.selectedId = id;
-    const c = state.cases.find(x => x.id === id);
-    if (!c) return;
+    function nowLocalIsoMin(){
+      const d = new Date();
+      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+      return d.toISOString().slice(0,16);
+    }
 
-    document.getElementById("detailEmpty").style.display = "none";
-    document.getElementById("detail").style.display = "block";
+    function fmtDT(s){
+      if(!s) return "-";
+      return String(s).replace("T"," ");
+    }
 
-    document.getElementById("dTitle").textContent = `${c.id} • ${c.vehicle?.plate || "-"}`;
-    document.getElementById("dMeta").textContent = `Şube: ${c.branch || "-"} • Olay: ${fmtDT(c.eventAt)} • Bildirim: ${fmtDT(c.reportedAt)}`;
+    function statusLabel(s){
+      return s === "OPEN" ? "Açık" : (s === "IN_REVIEW" ? "İncelemede" : "Kapalı");
+    }
 
-    document.getElementById("dStatus").value = c.status;
+    function statusTagClass(s){
+      return s === "OPEN" ? "tag-open" : (s === "IN_REVIEW" ? "tag-review" : "tag-closed");
+    }
 
-    document.getElementById("dSummary").innerHTML = `
-      <div><b>Sürücü:</b> ${c.driver?.name || "-"}</div>
-      <div><b>Araç No:</b> ${c.vehicle?.vehicleNo || "-"}</div>
-      <div><b>Tip:</b> ${labelType(c.accidentType)} | <b>Polis:</b> ${c.police ? "Var" : "Yok"}</div>
-      <div style="margin-top:6px;"><b>Açıklama:</b><br>${escapeHtml(c.description || "-")}</div>
-    `;
+    function typeLabel(t){
+      const map = {
+        REAR_END:"Arkadan Çarpma",
+        SIDE:"Yandan",
+        PARKING:"Park / Manevra",
+        SINGLE:"Tek Taraf",
+        LOAD_DAMAGE:"Yük Hasarı"
+      };
+      return map[t] || t || "-";
+    }
 
-    const loc = c.location || {};
-    document.getElementById("dLocation").innerHTML = `
-      <div><b>Adres:</b> ${escapeHtml(loc.address || "—")}</div>
-      <div><b>Koordinat:</b> ${loc.lat ?? "—"}, ${loc.lon ?? "—"}</div>
-    `;
+    function defaultChecklist(){
+      // İsterseniz buraya şirketin standart evrak listesini genişletebiliriz
+      return [
+        { key:"accident_report", title:"Kaza tutanağı / karşılıklı beyan", done:false, note:"" },
+        { key:"police_report", title:"Polis raporu (varsa)", done:false, note:"" },
+        { key:"photos", title:"Kaza fotoğrafları (yakın/uzak)", done:false, note:"" },
+        { key:"license", title:"Sürücü ehliyeti kopyası (gerekliyse)", done:false, note:"" },
+        { key:"registration", title:"Ruhsat kopyası", done:false, note:"" },
+        { key:"insurance_policy", title:"Sigorta poliçesi kopyası", done:false, note:"" },
+        { key:"expertise", title:"Ekspertiz / servis raporu", done:false, note:"" },
+        { key:"invoice", title:"Onarım faturası (varsa)", done:false, note:"" }
+      ];
+    }
 
-    renderTasks(c);
-    renderCosts(c);
-    renderAttachments(c);
-    renderTimeline(c);
-  }
+    function ensureCaseShape(c){
+      c.vehicle ??= { plate:"", vehicleNo:"", trailerNo:"" };
+      c.driver ??= { name:"", employeeId:"", phone:"" };
+      c.thirdParty ??= { name:"", plate:"", phone:"", insurer:"", policyNo:"", driverLicense:"", notes:"" };
+      c.insurance ??= { claimNo:"", status:"DRAFT", insurer:"", broker:"", notifiedAt:"", contact:"", notes:"" };
+      c.tasks ??= [];
+      c.costs ??= [];
+      c.attachments ??= [];
+      c.timeline ??= [];
+      c.checklist ??= defaultChecklist();
+    }
 
-  function labelType(t) {
-    return ({
-      REAR_END:"Arkadan Çarpma",
-      SIDE:"Yandan",
-      PARKING:"Park / Manevra",
-      SINGLE:"Tek Taraf",
-      LOAD_DAMAGE:"Yük Hasarı"
-    })[t] || t;
-  }
+    // ---------- Storage ----------
+    function save(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.cases));
+    }
 
-  function escapeHtml(s) {
-    return (s || "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
-  }
+    function load(){
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        try{
+          state.cases = JSON.parse(raw) || [];
+        }catch{
+          state.cases = [];
+        }
+      }else{
+        seed();
+        save();
+      }
+      renderList();
+    }
 
-  function updateStatus() {
-    const c = getSelected();
-    if (!c) return;
-    const val = document.getElementById("dStatus").value;
-    c.status = val;
-    c.timeline.unshift({ at: nowIsoLocal(), by: "User", event: `Status changed to ${val}` });
-    save();
-    renderList();
-    selectCase(c.id);
-  }
+    function seed(){
+      state.cases = [{
+        id: "CASE-2026-0001",
+        status: "OPEN",
+        severity: "MEDIUM",
+        branch: "Oude Meer",
+        eventAt: "2026-01-02T09:15",
+        reportedAt: "2026-01-02T09:22",
+        location: { lat: 52.3031, lon: 4.7639, address: "1438AN Oude Meer, Netherlands" },
+        accidentType: "REAR_END",
+        injury: false,
+        police: true,
+        description: "Trafikte ani fren sonucu arkadan çarpma.",
+        vehicle: { plate:"NL-AB-123", vehicleNo:"TRK-014", trailerNo:"" },
+        driver: { name:"Ahmet Yılmaz", employeeId:"", phone:"" },
+        thirdParty: { name:"", plate:"", phone:"", insurer:"", policyNo:"", driverLicense:"", notes:"" },
+        insurance: { claimNo:"", status:"DRAFT", insurer:"", broker:"", notifiedAt:"", contact:"", notes:"" },
+        checklist: defaultChecklist(),
+        tasks: [
+          { id:"TSK-1", title:"Tutanak yükle", assignee:"Operasyon", dueAt:"2026-01-03", status:"OPEN" }
+        ],
+        costs: [
+          { id:"CST-1", type:"TOWING", amount:220.00, currency:"EUR", supplier:"TowCo", invoiceNo:"TW-5512" }
+        ],
+        attachments: [],
+        timeline: [
+          { at:"2026-01-02T09:22", by:"Driver", event:"Case created" }
+        ]
+      }];
+    }
 
-  function deleteCase() {
-    const c = getSelected();
-    if (!c) return;
-    if (!confirm(`${c.id} silinsin mi?`)) return;
-    state.cases = state.cases.filter(x => x.id !== c.id);
-    save();
-    state.selectedId = null;
-    document.getElementById("detail").style.display = "none";
-    document.getElementById("detailEmpty").style.display = "block";
-    renderList();
-  }
+    function nextCaseId(){
+      const year = new Date().getFullYear();
+      const prefix = `CASE-${year}-`;
+      const nums = state.cases
+        .filter(c => (c.id || "").startsWith(prefix))
+        .map(c => parseInt(String(c.id).slice(prefix.length), 10))
+        .filter(n => Number.isFinite(n));
+      const n = (nums.length ? Math.max(...nums) : 0) + 1;
+      return prefix + String(n).padStart(4,"0");
+    }
 
-  function getSelected() {
-    return state.cases.find(x => x.id === state.selectedId);
-  }
+    // ---------- Tabs ----------
+    function setTab(tab){
+      state.activeTab = tab;
+      updateTabUI();
+    }
 
-  function addTask() {
-    const c = getSelected();
-    if (!c) return;
-
-    const title = document.getElementById("tTitle").value.trim();
-    const dueAt = document.getElementById("tDue").value;
-    const assignee = document.getElementById("tAssignee").value.trim();
-
-    if (!title) { alert("Görev başlığı zorunlu."); return; }
-
-    const id = `TSK-${(c.tasks.length + 1)}`;
-    c.tasks.push({ id, title, assignee, dueAt, status:"OPEN" });
-    c.timeline.unshift({ at: nowIsoLocal(), by: "User", event: `Task added: ${title}` });
-
-    document.getElementById("tTitle").value = "";
-    document.getElementById("tAssignee").value = "";
-    save();
-    renderTasks(c);
-    renderTimeline(c);
-  }
-
-  function toggleTask(id) {
-    const c = getSelected(); if (!c) return;
-    const t = c.tasks.find(x => x.id === id); if (!t) return;
-    t.status = (t.status === "OPEN") ? "DONE" : "OPEN";
-    c.timeline.unshift({ at: nowIsoLocal(), by: "User", event: `Task ${t.status}: ${t.title}` });
-    save();
-    renderTasks(c);
-    renderTimeline(c);
-  }
-
-  function renderTasks(c) {
-    const body = document.getElementById("tBody");
-    body.innerHTML = c.tasks.map(t => `
-      <tr>
-        <td>${escapeHtml(t.title)}</td>
-        <td>${escapeHtml(t.assignee || "-")}</td>
-        <td>${t.dueAt || "-"}</td>
-        <td class="right">
-          <button class="secondary" onclick="toggleTask('${t.id}')">${t.status === "DONE" ? "Tamam" : "Açık"}</button>
-        </td>
-      </tr>
-    `).join("") || `<tr><td colspan="4" class="muted">Görev yok.</td></tr>`;
-  }
-
-  function addCost() {
-    const c = getSelected();
-    if (!c) return;
-
-    const type = document.getElementById("cType").value;
-    const amount = Number(document.getElementById("cAmount").value);
-    const supplier = document.getElementById("cSupplier").value.trim();
-    const invoiceNo = document.getElementById("cInvoice").value.trim();
-
-    if (!amount || amount <= 0) { alert("Geçerli bir tutar girin."); return; }
-
-    const id = `CST-${(c.costs.length + 1)}`;
-    c.costs.push({ id, type, amount, currency:"EUR", supplier, invoiceNo });
-    c.timeline.unshift({ at: nowIsoLocal(), by: "User", event: `Cost added: ${type} ${amount} EUR` });
-
-    document.getElementById("cAmount").value = "";
-    document.getElementById("cSupplier").value = "";
-    document.getElementById("cInvoice").value = "";
-    save();
-    renderCosts(c);
-    renderTimeline(c);
-  }
-
-  function renderCosts(c) {
-    const body = document.getElementById("cBody");
-    const total = c.costs.reduce((s,x) => s + (Number(x.amount)||0), 0);
-    document.getElementById("cTotal").textContent = `${total.toFixed(2)} EUR`;
-
-    body.innerHTML = c.costs.map(x => `
-      <tr>
-        <td>${escapeHtml(x.type)}</td>
-        <td>${escapeHtml(x.supplier || "-")}</td>
-        <td>${escapeHtml(x.invoiceNo || "-")}</td>
-        <td class="right">${Number(x.amount).toFixed(2)} ${x.currency || "EUR"}</td>
-      </tr>
-    `).join("") || `<tr><td colspan="4" class="muted">Maliyet yok.</td></tr>`;
-  }
-
-  function addAttachment() {
-    const c = getSelected();
-    if (!c) return;
-
-    const type = document.getElementById("aType").value;
-    const fileInput = document.getElementById("aFile");
-    const f = fileInput.files[0];
-    if (!f) { alert("Dosya seçin."); return; }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const id = `ATT-${(c.attachments.length + 1)}`;
-      c.attachments.push({
-        id, type, name: f.name, createdAt: nowIsoLocal(),
-        dataUrl: reader.result // demo
+    function updateTabUI(){
+      const tabs = document.querySelectorAll(".tabBtn");
+      tabs.forEach(btn => {
+        const t = btn.getAttribute("data-tab");
+        btn.classList.toggle("active", t === state.activeTab);
       });
-      c.timeline.unshift({ at: nowIsoLocal(), by: "User", event: `Attachment uploaded: ${f.name}` });
-      fileInput.value = "";
-      save();
+
+      const panels = document.querySelectorAll(".tabPanel");
+      panels.forEach(p => p.classList.remove("active"));
+      const activePanel = $("tab-" + state.activeTab);
+      if(activePanel) activePanel.classList.add("active");
+    }
+
+    // ---------- List ----------
+    function renderList(){
+      const q = ($("q").value || "").toLowerCase().trim();
+      const fStatus = $("fStatus").value || "";
+
+      const filtered = state.cases
+        .filter(c => !fStatus || c.status === fStatus)
+        .filter(c => {
+          if(!q) return true;
+          const hay = [
+            c.id, c.branch,
+            c.vehicle?.plate, c.vehicle?.vehicleNo,
+            c.driver?.name,
+            c.description
+          ].join(" ").toLowerCase();
+          return hay.includes(q);
+        })
+        .sort((a,b) => (b.reportedAt || "").localeCompare(a.reportedAt || ""));
+
+      $("list").innerHTML = filtered.map(c => {
+        const active = c.id === state.selectedId ? "active" : "";
+        return `
+          <div class="item ${active}" onclick="App.selectCase('${String(c.id).replaceAll("'","")}')">
+            <div>
+              <b>${escapeHtml(c.id)}</b>
+              <span class="tag ${statusTagClass(c.status)}">${statusLabel(c.status)}</span>
+              <span class="pill">${escapeHtml(c.severity || "-")}</span>
+            </div>
+            <div class="muted">${escapeHtml(c.vehicle?.plate || "-")} • ${escapeHtml(c.driver?.name || "-")} • ${escapeHtml(c.branch || "-")}</div>
+            <div class="muted">Olay: ${fmtDT(c.eventAt)} • Bildirim: ${fmtDT(c.reportedAt)}</div>
+          </div>
+        `;
+      }).join("") || `<div class="muted">Kayıt bulunamadı.</div>`;
+    }
+
+    // ---------- Detail ----------
+    function getSelected(){
+      return state.cases.find(c => c.id === state.selectedId) || null;
+    }
+
+    function selectCase(id){
+      state.selectedId = id;
+      const c = getSelected();
+      if(!c) return;
+
+      ensureCaseShape(c);
+
+      $("detailEmpty").style.display = "none";
+      $("detail").style.display = "block";
+
+      $("dTitle").textContent = `${c.id} • ${c.vehicle?.plate || "-"}`;
+      $("dMeta").textContent = `Şube: ${c.branch || "-"} • Olay: ${fmtDT(c.eventAt)} • Bildirim: ${fmtDT(c.reportedAt)}`;
+      $("dStatus").value = c.status || "OPEN";
+
+      renderGeneral(c);
+      renderThirdParty(c);
+      renderInsurance(c);
+      renderChecklist(c);
+      renderTasks(c);
+      renderCosts(c);
       renderAttachments(c);
       renderTimeline(c);
-    };
-    reader.readAsDataURL(f);
-  }
 
-  function downloadAttachment(attId) {
-    const c = getSelected(); if (!c) return;
-    const a = c.attachments.find(x => x.id === attId); if (!a) return;
-    const link = document.createElement("a");
-    link.href = a.dataUrl;
-    link.download = a.name;
-    link.click();
-  }
+      updateTabUI();
+      renderList();
+      save(); // eksik alanlar defaultlandığında persist edilsin
+    }
 
-  function removeAttachment(attId) {
-    const c = getSelected(); if (!c) return;
-    c.attachments = c.attachments.filter(x => x.id !== attId);
-    c.timeline.unshift({ at: nowIsoLocal(), by: "User", event: `Attachment removed: ${attId}` });
-    save();
-    renderAttachments(c);
-    renderTimeline(c);
-  }
+    function renderGeneral(c){
+      $("dSummary").innerHTML = `
+        <div><b>Sürücü:</b> ${escapeHtml(c.driver?.name || "-")}</div>
+        <div><b>Araç No:</b> ${escapeHtml(c.vehicle?.vehicleNo || "-")}</div>
+        <div><b>Kaza Tipi:</b> ${escapeHtml(typeLabel(c.accidentType))}</div>
+        <div><b>Polis:</b> ${c.police ? "Var" : "Yok"}</div>
+        <div style="margin-top:8px;"><b>Açıklama:</b><br>${escapeHtml(c.description || "-")}</div>
+      `;
 
-  function renderAttachments(c) {
-    const body = document.getElementById("aBody");
-    body.innerHTML = c.attachments.map(a => `
-      <tr>
-        <td>${escapeHtml(a.type)}</td>
-        <td>${escapeHtml(a.name)}</td>
-        <td>${fmtDT(a.createdAt)}</td>
-        <td class="right">
-          <button class="secondary" onclick="downloadAttachment('${a.id}')">İndir</button>
-          <button class="secondary" onclick="removeAttachment('${a.id}')">Sil</button>
-        </td>
-      </tr>
-    `).join("") || `<tr><td colspan="4" class="muted">Ek yok.</td></tr>`;
-  }
+      const loc = c.location || {};
+      $("dLocation").innerHTML = `
+        <div><b>Adres:</b> ${escapeHtml(loc.address || "—")}</div>
+        <div><b>Koordinat:</b> ${loc.lat ?? "—"}, ${loc.lon ?? "—"}</div>
+      `;
+    }
 
-  function renderTimeline(c) {
-    const body = document.getElementById("lBody");
-    const items = (c.timeline || []).slice().sort((a,b) => (b.at||"").localeCompare(a.at||""));
-    body.innerHTML = items.map(e => `
-      <tr>
-        <td>${fmtDT(e.at)}</td>
-        <td>${escapeHtml(e.by || "-")}</td>
-        <td>${escapeHtml(e.event || "-")}</td>
-      </tr>
-    `).join("") || `<tr><td colspan="3" class="muted">Timeline boş.</td></tr>`;
-  }
+    function updateStatus(){
+      const c = getSelected();
+      if(!c) return;
+      const val = $("dStatus").value;
+      c.status = val;
+      c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: `Status changed to ${val}` });
+      save();
+      selectCase(c.id);
+    }
 
-  function exportData() {
-    const blob = new Blob([JSON.stringify(state.cases, null, 2)], { type:"application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "kaza-takip-export.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+    function deleteCase(){
+      const c = getSelected();
+      if(!c) return;
+      if(!confirm(`${c.id} silinsin mi?`)) return;
 
-  function importData() {
-    const inp = document.createElement("input");
-    inp.type = "file";
-    inp.accept = "application/json";
-    inp.onchange = () => {
-      const f = inp.files[0];
-      if (!f) return;
-      const r = new FileReader();
-      r.onload = () => {
-        try {
-          const data = JSON.parse(r.result);
-          if (!Array.isArray(data)) throw new Error("Format geçersiz (array bekleniyor).");
-          state.cases = data;
-          save();
-          state.selectedId = null;
-          document.getElementById("detail").style.display = "none";
-          document.getElementById("detailEmpty").style.display = "block";
-          renderList();
-          alert("Import tamamlandı.");
-        } catch (e) {
-          alert("Import hatası: " + e.message);
-        }
+      state.cases = state.cases.filter(x => x.id !== c.id);
+      state.selectedId = null;
+      save();
+      $("detail").style.display = "none";
+      $("detailEmpty").style.display = "block";
+      renderList();
+    }
+
+    // ---------- Third Party ----------
+    function renderThirdParty(c){
+      const tp = c.thirdParty || {};
+      $("tpName").value = tp.name || "";
+      $("tpPhone").value = tp.phone || "";
+      $("tpPlate").value = tp.plate || "";
+      $("tpInsurer").value = tp.insurer || "";
+      $("tpPolicyNo").value = tp.policyNo || "";
+      $("tpDriverLicense").value = tp.driverLicense || "";
+      $("tpNotes").value = tp.notes || "";
+    }
+
+    function saveThirdParty(){
+      const c = getSelected();
+      if(!c) return;
+
+      c.thirdParty = {
+        name: ($("tpName").value || "").trim(),
+        phone: ($("tpPhone").value || "").trim(),
+        plate: ($("tpPlate").value || "").trim(),
+        insurer: ($("tpInsurer").value || "").trim(),
+        policyNo: ($("tpPolicyNo").value || "").trim(),
+        driverLicense: ($("tpDriverLicense").value || "").trim(),
+        notes: ($("tpNotes").value || "").trim()
       };
-      r.readAsText(f);
-    };
-    inp.click();
-  }
 
-  function resetAll() {
-    if (!confirm("Tüm veriler silinsin mi?")) return;
-    localStorage.removeItem(STORAGE_KEY);
-    state = { cases: [], selectedId: null, draftLocation: null };
+      c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: "Third party info updated" });
+      save();
+      selectCase(c.id);
+    }
+
+    function clearThirdParty(){
+      $("tpName").value = "";
+      $("tpPhone").value = "";
+      $("tpPlate").value = "";
+      $("tpInsurer").value = "";
+      $("tpPolicyNo").value = "";
+      $("tpDriverLicense").value = "";
+      $("tpNotes").value = "";
+    }
+
+    // ---------- Insurance ----------
+    function renderInsurance(c){
+      const ins = c.insurance || {};
+      $("insClaimNo").value = ins.claimNo || "";
+      $("insStatus").value = ins.status || "DRAFT";
+      $("insInsurer").value = ins.insurer || "";
+      $("insBroker").value = ins.broker || "";
+      $("insNotifiedAt").value = ins.notifiedAt || "";
+      $("insContact").value = ins.contact || "";
+      $("insNotes").value = ins.notes || "";
+    }
+
+    function saveInsurance(){
+      const c = getSelected();
+      if(!c) return;
+
+      c.insurance = {
+        claimNo: ($("insClaimNo").value || "").trim(),
+        status: $("insStatus").value || "DRAFT",
+        insurer: ($("insInsurer").value || "").trim(),
+        broker: ($("insBroker").value || "").trim(),
+        notifiedAt: $("insNotifiedAt").value || "",
+        contact: ($("insContact").value || "").trim(),
+        notes: ($("insNotes").value || "").trim()
+      };
+
+      c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: "Insurance info updated" });
+      save();
+      selectCase(c.id);
+    }
+
+    function clearInsurance(){
+      $("insClaimNo").value = "";
+      $("insStatus").value = "DRAFT";
+      $("insInsurer").value = "";
+      $("insBroker").value = "";
+      $("insNotifiedAt").value = "";
+      $("insContact").value = "";
+      $("insNotes").value = "";
+    }
+
+    // ---------- Checklist ----------
+    function renderChecklist(c){
+      c.checklist ??= defaultChecklist();
+
+      const doneCount = c.checklist.filter(x => x.done).length;
+      const total = c.checklist.length;
+      const pct = total ? Math.round((doneCount/total) * 100) : 0;
+
+      $("checkProgressText").textContent = `${doneCount}/${total} • %${pct}`;
+      $("checkProgressBar").style.width = `${pct}%`;
+
+      $("checkList").innerHTML = c.checklist.map(item => {
+        const checked = item.done ? "checked" : "";
+        return `
+          <div class="checkItem">
+            <input type="checkbox" ${checked}
+              onchange="App.toggleChecklist('${escapeHtml(item.key)}', this.checked)" />
+            <div>
+              <div class="checkTitle">${escapeHtml(item.title)}</div>
+              <div class="muted">${item.done ? "Tamamlandı" : "Eksik"}</div>
+              <div class="checkMeta">
+                <input
+                  placeholder="Not (opsiyonel)"
+                  value="${escapeHtml(item.note || "")}"
+                  onblur="App.updateChecklistNote('${escapeHtml(item.key)}', this.value)" />
+                <button class="secondary" type="button" onclick="App.createTaskFromChecklist('${escapeHtml(item.key)}')">
+                  Bu evrak için görev aç
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function toggleChecklist(key, checked){
+      const c = getSelected();
+      if(!c) return;
+      const it = (c.checklist || []).find(x => x.key === key);
+      if(!it) return;
+
+      it.done = !!checked;
+      c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: `Checklist: ${it.title} → ${it.done ? "DONE" : "OPEN"}` });
+      save();
+      selectCase(c.id);
+    }
+
+    function updateChecklistNote(key, note){
+      const c = getSelected();
+      if(!c) return;
+      const it = (c.checklist || []).find(x => x.key === key);
+      if(!it) return;
+
+      it.note = (note || "").trim();
+      c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: `Checklist note updated: ${it.title}` });
+      save();
+      // aktif sekmeyi koruyarak tekrar render
+      const currentTab = state.activeTab;
+      selectCase(c.id);
+      setTab(currentTab);
+    }
+
+    function createTaskFromChecklist(key){
+      const c = getSelected();
+      if(!c) return;
+      const it = (c.checklist || []).find(x => x.key === key);
+      if(!it) return;
+
+      // Görev alanını otomatik dolduralım:
+      $("tTitle").value = `Evrak: ${it.title}`;
+      $("tAssignee").value = "Operasyon";
+      setTab("OPS");
+      updateTabUI();
+      // İsterseniz burada otomatik task da oluşturabiliriz. Şimdilik kullanıcı "Görev Ekle"ye basar.
+    }
+
+    // ---------- Tasks ----------
+    function renderTasks(c){
+      const body = $("tBody");
+      const rows = (c.tasks || []).map(t => `
+        <tr>
+          <td>${escapeHtml(t.title)}</td>
+          <td>${escapeHtml(t.assignee || "-")}</td>
+          <td>${escapeHtml(t.dueAt || "-")}</td>
+          <td class="right">
+            <button class="secondary" type="button" onclick="App.toggleTask('${escapeHtml(t.id)}')">
+              ${t.status === "DONE" ? "Tamam" : "Açık"}
+            </button>
+          </td>
+        </tr>
+      `).join("");
+
+      body.innerHTML = rows || `<tr><td colspan="4" class="muted">Görev yok.</td></tr>`;
+    }
+
+    function addTask(){
+      const c = getSelected();
+      if(!c) return;
+
+      const title = ($("tTitle").value || "").trim();
+      const dueAt = $("tDue").value || "";
+      const assignee = ($("tAssignee").value || "").trim();
+
+      if(!title){
+        alert("Görev başlığı zorunludur.");
+        return;
+      }
+
+      const id = `TSK-${(c.tasks?.length || 0) + 1}`;
+      c.tasks = c.tasks || [];
+      c.tasks.push({ id, title, assignee, dueAt, status:"OPEN" });
+      c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: `Task added: ${title}` });
+
+      $("tTitle").value = "";
+      $("tAssignee").value = "";
+      save();
+
+      const currentTab = state.activeTab;
+      selectCase(c.id);
+      setTab(currentTab);
+    }
+
+    function toggleTask(taskId){
+      const c = getSelected();
+      if(!c) return;
+      const t = (c.tasks || []).find(x => x.id === taskId);
+      if(!t) return;
+
+      t.status = (t.status === "DONE") ? "OPEN" : "DONE";
+      c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: `Task ${t.status}: ${t.title}` });
+      save();
+
+      const currentTab = state.activeTab;
+      selectCase(c.id);
+      setTab(currentTab);
+    }
+
+    // ---------- Costs ----------
+    function renderCosts(c){
+      const body = $("cBody");
+      const total = (c.costs || []).reduce((s,x) => s + (Number(x.amount) || 0), 0);
+      $("cTotal").textContent = `${total.toFixed(2)} EUR`;
+
+      const rows = (c.costs || []).map(x => `
+        <tr>
+          <td>${escapeHtml(x.type)}</td>
+          <td>${escapeHtml(x.supplier || "-")}</td>
+          <td>${escapeHtml(x.invoiceNo || "-")}</td>
+          <td class="right">${Number(x.amount || 0).toFixed(2)} ${escapeHtml(x.currency || "EUR")}</td>
+        </tr>
+      `).join("");
+
+      body.innerHTML = rows || `<tr><td colspan="4" class="muted">Maliyet yok.</td></tr>`;
+    }
+
+    function addCost(){
+      const c = getSelected();
+      if(!c) return;
+
+      const type = $("cType").value;
+      const amount = Number($("cAmount").value);
+      const supplier = ($("cSupplier").value || "").trim();
+      const invoiceNo = ($("cInvoice").value || "").trim();
+
+      if(!amount || amount <= 0){
+        alert("Geçerli bir tutar girin.");
+        return;
+      }
+
+      const id = `CST-${(c.costs?.length || 0) + 1}`;
+      c.costs = c.costs || [];
+      c.costs.push({ id, type, amount, currency:"EUR", supplier, invoiceNo });
+      c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: `Cost added: ${type} ${amount} EUR` });
+
+      $("cAmount").value = "";
+      $("cSupplier").value = "";
+      $("cInvoice").value = "";
+
+      save();
+
+      const currentTab = state.activeTab;
+      selectCase(c.id);
+      setTab(currentTab);
+    }
+
+    // ---------- Attachments ----------
+    function renderAttachments(c){
+      const body = $("aBody");
+      const rows = (c.attachments || []).map(a => `
+        <tr>
+          <td>${escapeHtml(a.type)}</td>
+          <td>${escapeHtml(a.name)}</td>
+          <td>${fmtDT(a.createdAt)}</td>
+          <td class="right">
+            <button class="secondary" type="button" onclick="App.downloadAttachment('${escapeHtml(a.id)}')">İndir</button>
+            <button class="secondary" type="button" onclick="App.removeAttachment('${escapeHtml(a.id)}')">Sil</button>
+          </td>
+        </tr>
+      `).join("");
+
+      body.innerHTML = rows || `<tr><td colspan="4" class="muted">Ek yok.</td></tr>`;
+    }
+
+    function addAttachment(){
+      const c = getSelected();
+      if(!c) return;
+
+      const type = $("aType").value;
+      const f = $("aFile").files[0];
+
+      if(!f){
+        alert("Dosya seçin.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const id = `ATT-${(c.attachments?.length || 0) + 1}`;
+        c.attachments = c.attachments || [];
+        c.attachments.push({
+          id, type, name: f.name, createdAt: nowLocalIsoMin(),
+          dataUrl: reader.result
+        });
+        c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: `Attachment uploaded: ${f.name}` });
+
+        $("aFile").value = "";
+        save();
+
+        const currentTab = state.activeTab;
+        selectCase(c.id);
+        setTab(currentTab);
+      };
+
+      reader.onerror = () => alert("Dosya okunamadı.");
+      reader.readAsDataURL(f);
+    }
+
+    function downloadAttachment(attId){
+      const c = getSelected();
+      if(!c) return;
+      const a = (c.attachments || []).find(x => x.id === attId);
+      if(!a || !a.dataUrl) return;
+
+      const link = document.createElement("a");
+      link.href = a.dataUrl;
+      link.download = a.name || "dosya";
+      link.click();
+    }
+
+    function removeAttachment(attId){
+      const c = getSelected();
+      if(!c) return;
+
+      c.attachments = (c.attachments || []).filter(x => x.id !== attId);
+      c.timeline.unshift({ at: nowLocalIsoMin(), by: "User", event: `Attachment removed: ${attId}` });
+      save();
+
+      const currentTab = state.activeTab;
+      selectCase(c.id);
+      setTab(currentTab);
+    }
+
+    // ---------- Timeline ----------
+    function renderTimeline(c){
+      const body = $("lBody");
+      const items = (c.timeline || []).slice().sort((a,b) => (b.at || "").localeCompare(a.at || ""));
+      const rows = items.map(e => `
+        <tr>
+          <td>${fmtDT(e.at)}</td>
+          <td>${escapeHtml(e.by || "-")}</td>
+          <td>${escapeHtml(e.event || "-")}</td>
+        </tr>
+      `).join("");
+
+      body.innerHTML = rows || `<tr><td colspan="3" class="muted">Timeline boş.</td></tr>`;
+    }
+
+    // ---------- Create modal / form ----------
+    function openCreate(){
+      $("createModal").classList.add("open");
+      $("createModal").setAttribute("aria-hidden","false");
+      if(!$("eventAt").value) fillWithNow();
+      $("plate").focus();
+    }
+
+    function closeCreate(){
+      $("createModal").classList.remove("open");
+      $("createModal").setAttribute("aria-hidden","true");
+      $("locHint").textContent = "";
+      state.draftLocation = null;
+    }
+
+    function fillWithNow(){
+      $("eventAt").value = nowLocalIsoMin();
+    }
+
+    function getLocation(){
+      $("locHint").textContent = "Konum alınıyor...";
+      if(!navigator.geolocation){
+        $("locHint").textContent = "Tarayıcı konum servislerini desteklemiyor.";
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          state.draftLocation = {
+            lat: Number(pos.coords.latitude.toFixed(6)),
+            lon: Number(pos.coords.longitude.toFixed(6)),
+            address: "—"
+          };
+          $("locHint").textContent = `Konum alındı: ${state.draftLocation.lat}, ${state.draftLocation.lon}`;
+        },
+        () => {
+          $("locHint").textContent = "Konum alınamadı (izin verilmemiş olabilir).";
+        },
+        { enableHighAccuracy:true, timeout:8000 }
+      );
+    }
+
+    function createCase(){
+      const branch = ($("branch").value || "").trim();
+      const severity = $("severity").value;
+      const plate = ($("plate").value || "").trim();
+      const vehicleNo = ($("vehicleNo").value || "").trim();
+      const driverName = ($("driverName").value || "").trim();
+      const eventAt = $("eventAt").value || nowLocalIsoMin();
+      const accidentType = $("accidentType").value;
+      const police = $("police").value === "true";
+      const desc = ($("desc").value || "").trim();
+
+      if(!plate || !driverName){
+        alert("Plaka ve Sürücü Adı zorunludur.");
+        return;
+      }
+
+      const id = nextCaseId();
+      const reportedAt = nowLocalIsoMin();
+
+      const c = {
+        id,
+        status: "OPEN",
+        severity,
+        branch,
+        eventAt,
+        reportedAt,
+        location: state.draftLocation || { lat:null, lon:null, address:"—" },
+        accidentType,
+        injury: false,
+        police,
+        description: desc,
+        vehicle: { plate, vehicleNo, trailerNo:"" },
+        driver: { name: driverName, employeeId:"", phone:"" },
+        thirdParty: { name:"", plate:"", phone:"", insurer:"", policyNo:"", driverLicense:"", notes:"" },
+        insurance: { claimNo:"", status:"DRAFT", insurer:"", broker:"", notifiedAt:"", contact:"", notes:"" },
+        checklist: defaultChecklist(),
+        tasks: [],
+        costs: [],
+        attachments: [],
+        timeline: [
+          { at: reportedAt, by: "User", event: "Case created" }
+        ]
+      };
+
+      state.cases.push(c);
+      save();
+
+      // form kısmi temizle
+      $("desc").value = "";
+
+      closeCreate();
+      renderList();
+      state.activeTab = "GENERAL";
+      selectCase(c.id);
+    }
+
+    // ---------- Export / Import / Reset ----------
+    function exportData(){
+      const blob = new Blob([JSON.stringify(state.cases, null, 2)], { type:"application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "kaza-takip-export.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importData(){
+      const inp = document.createElement("input");
+      inp.type = "file";
+      inp.accept = "application/json";
+
+      inp.onchange = () => {
+        const f = inp.files[0];
+        if(!f) return;
+        const r = new FileReader();
+        r.onload = () => {
+          try{
+            const data = JSON.parse(r.result);
+            if(!Array.isArray(data)) throw new Error("Format geçersiz (array bekleniyor).");
+            state.cases = data;
+            state.selectedId = null;
+            save();
+            $("detail").style.display = "none";
+            $("detailEmpty").style.display = "block";
+            renderList();
+            alert("Import tamamlandı.");
+          }catch(e){
+            alert("Import hatası: " + e.message);
+          }
+        };
+        r.readAsText(f);
+      };
+
+      inp.click();
+    }
+
+    function resetAll(){
+      if(!confirm("Tüm veriler silinsin mi?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      state.cases = [];
+      state.selectedId = null;
+      state.draftLocation = null;
+      state.activeTab = "GENERAL";
+      seed();
+      save();
+      $("detail").style.display = "none";
+      $("detailEmpty").style.display = "block";
+      renderList();
+      alert("Sıfırlandı.");
+    }
+
+    // ---------- Global shortcuts ----------
+    document.addEventListener("keydown", (e) => {
+      if(e.key === "Escape"){
+        closeCreate();
+      }
+    });
+
+    // ---------- init ----------
     load();
-    alert("Sıfırlandı.");
-  }
 
-  load();
+    return {
+      // list/detail
+      renderList, selectCase, updateStatus, deleteCase,
+      // tabs
+      setTab,
+      // third party
+      saveThirdParty, clearThirdParty,
+      // insurance
+      saveInsurance, clearInsurance,
+      // checklist
+      toggleChecklist, updateChecklistNote, createTaskFromChecklist,
+      // ops
+      addTask, toggleTask, addCost, addAttachment, downloadAttachment, removeAttachment,
+      // modal + create
+      openCreate, closeCreate, fillWithNow, getLocation, createCase,
+      // export/import/reset
+      exportData, importData, resetAll
+    };
+  })();
+
+  window.App = App;
 </script>
+
 </body>
 </html>
