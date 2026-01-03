@@ -3,9 +3,28 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>NedLine MVP - Drivers/Contracts/Tours/Charters/Routes</title>
+  <title>NedLine MVP - Dashboard + Modules</title>
   <style>
-    :root { --b:#e6e6e6; --bg:#fafafa; --txt:#111; --muted:#666; --card:#fff; --shadow: 0 6px 18px rgba(0,0,0,.06); }
+    :root {
+      --b:#e6e6e6;
+      --bg:#fafafa;
+      --txt:#111;
+      --muted:#666;
+      --card:#fff;
+      --shadow: 0 6px 18px rgba(0,0,0,.06);
+
+      --pos-bg:#e9f8ef;
+      --pos-txt:#0f5132;
+
+      --neg-bg:#fdecec;
+      --neg-txt:#842029;
+
+      --warn-bg:#fff7e6;
+      --warn-txt:#7a4d00;
+
+      --chip:#f3f3f3;
+    }
+
     body{ font-family: Arial, sans-serif; margin:18px; color:var(--txt); background:#fff; }
     h1{ margin:0 0 6px; font-size:20px; }
     .muted{ color:var(--muted); font-size:12px; line-height:1.4; }
@@ -16,6 +35,7 @@
       font-size:13px;
     }
     .tabbar button.active{ background:#111; color:#fff; border-color:#111; }
+
     .card{ border:1px solid var(--b); border-radius:14px; padding:14px; margin-top:12px; background:var(--card); box-shadow: var(--shadow); }
     .row{ display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; }
     label{ font-size:12px; }
@@ -32,6 +52,7 @@
     button.danger{ background:#fff3f3; border-color:#ffd0d0; }
     button:hover{ background:#f0f0f0; }
     hr{ border:0; border-top:1px solid #eee; margin:12px 0; }
+
     table{ width:100%; border-collapse:collapse; margin-top:10px; }
     th, td{ border:1px solid #eee; padding:8px; font-size:12px; vertical-align:top; }
     th{ background:#fbfbfb; text-align:left; position:sticky; top:0; z-index:1; }
@@ -51,15 +72,48 @@
     .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
     @media(max-width:980px){ .grid2{ grid-template-columns:1fr; } }
     .hint{ background:#fff; border:1px dashed #ddd; border-radius:12px; padding:10px; }
-    .warn{ background:#fffbe6; border:1px solid #ffe58f; border-radius:12px; padding:10px; }
+    .warn{ background:var(--warn-bg); border:1px solid #ffe58f; border-radius:12px; padding:10px; color:var(--warn-txt); }
+
+    /* Dashboard visuals */
+    .kpiGrid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; }
+    @media(max-width:1100px){ .kpiGrid{ grid-template-columns: repeat(2, 1fr); } }
+    @media(max-width:560px){ .kpiGrid{ grid-template-columns: 1fr; } }
+
+    .kpi{
+      border:1px solid #eee; border-radius:14px; padding:12px; background:#fff; box-shadow: none;
+    }
+    .kpi .label{ font-size:12px; color:var(--muted); }
+    .kpi .value{ font-size:20px; margin-top:6px; font-weight:700; }
+    .kpi .sub{ font-size:12px; margin-top:6px; color:var(--muted); }
+
+    .tagPos{ background:var(--pos-bg); color:var(--pos-txt); border:1px solid #b7e3c8; }
+    .tagNeg{ background:var(--neg-bg); color:var(--neg-txt); border:1px solid #f5b5b5; }
+    .tagWarn{ background:var(--warn-bg); color:var(--warn-txt); border:1px solid #ffd591; }
+
+    .rowPos td{ background: #fbfffc; }
+    .rowNeg td{ background: #fffafa; }
+
+    .barWrap{ display:flex; flex-direction:column; gap:8px; }
+    .barRow{ display:flex; align-items:center; gap:10px; }
+    .barLabel{ width:160px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:12px; }
+    .barTrack{ flex:1; height:14px; border-radius:999px; border:1px solid #eee; background:#fafafa; position:relative; overflow:hidden; }
+    .barFillPos{ height:100%; background:#1f8b4c; border-radius:999px; }
+    .barFillNeg{ height:100%; background:#c0392b; border-radius:999px; }
+    .barVal{ width:110px; text-align:right; font-size:12px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+
+    .chip{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px; border-radius:999px; border:1px solid #eaeaea; background:var(--chip);
+      font-size:12px;
+    }
   </style>
 </head>
 <body>
 
-<h1>NedLine MVP — Sürücüler / Sözleşmeler / Turlar / Charterlar / Rotalar</h1>
+<h1>NedLine MVP — Dashboard + Operasyon Modülleri</h1>
 <div class="muted">
-  Rota geliri: Rota Satış override > 0 ise override kullanılır, yoksa seçilen turların toplamı gelir kabul edilir. <br/>
-  Charter maliyeti: Charter Firma → Araç → (Sabit/KM/Saat) modeline göre otomatik; isterseniz rota bazında override girilebilir.
+  Dashboard, rota bazında hesaplanan <span class="kbd">Gelir / Maliyet / Kâr</span> değerlerinden beslenir. <br/>
+  Gece saat aralığı ve renk eşikleri <b>Ayarlar</b> menüsünden değiştirilebilir.
 </div>
 
 <div class="topbar">
@@ -90,7 +144,7 @@
 /* =========================
    Storage / State
    ========================= */
-const STORAGE_KEY = "nedline_mvp_v2_charter_vehicles";
+const STORAGE_KEY = "nedline_mvp_v3_dashboard_settings";
 
 const PROFILE_TYPES = [
   {code:"EMPLOYEE_TLN", label:"Employe TLN"},
@@ -134,8 +188,25 @@ function downloadText(text, filename, mime="application/json;charset=utf-8") {
   URL.revokeObjectURL(url);
 }
 
+function defaultSettings(){
+  return {
+    currency_symbol: "€",
+    // Gece aralığı (cross-midnight destekli)
+    night_start: "21:00",
+    night_end: "04:00",
+    // Dashboard renk eşikleri
+    // profit < 0 => kırmızı
+    // 0 <= profit < profit_warn_threshold => amber
+    // profit >= profit_warn_threshold => yeşil
+    profit_warn_threshold: 100,
+    // Dashboard default filtre
+    dashboard_default_range: "ALL" // ALL | LAST_7 | THIS_MONTH
+  };
+}
+
 function seedData(){
   return {
+    settings: defaultSettings(),
     drivers: [
       {driver_id:"DRV-001", full_name:"Örnek TLN", profile_type:"EMPLOYEE_TLN", contract_id:"CTR-TLN-001", is_active:true},
       {driver_id:"DRV-010", full_name:"Örnek ZZP", profile_type:"ZZP_HOURLY", contract_id:"CTR-ZZP-010", is_active:true}
@@ -177,7 +248,7 @@ function seedData(){
         customer: "CUST-01",
         start_dt: "2026-01-05T08:00",
         end_dt: "2026-01-05T18:00",
-        tour_price_eur: 650,   // Tur Geliri (müşteriden)
+        tour_price_eur: 650,
         tour_km: 180,
         vehicle_type: "Tautliner",
       },
@@ -189,7 +260,7 @@ function seedData(){
         customer: "CUST-01",
         start_dt: "2026-01-05T19:30",
         end_dt: "2026-01-05T23:30",
-        tour_price_eur: 300,   // Tur Geliri (müşteriden)
+        tour_price_eur: 300,
         tour_km: 120,
         vehicle_type: "Box",
       }
@@ -198,12 +269,9 @@ function seedData(){
       {vendor_id:"CH-001", vendor_name:"Charter 1", is_active:true}
     ],
     charter_vehicles: [
-      // Araç A: sabit
-      {vehicle_id:"CH1-A", vendor_id:"CH-001", vehicle_name:"Araç A", cost_model:"FIXED", fixed_fee_eur:250, km_rate_eur:0, hour_rate_eur:0, is_active:true, note:"Sabit rota fiyatı"},
-      // Araç B: km
-      {vehicle_id:"CH1-B", vendor_id:"CH-001", vehicle_name:"Araç B", cost_model:"PER_KM", fixed_fee_eur:0, km_rate_eur:0.85, hour_rate_eur:0, is_active:true, note:"KM başı fiyat"},
-      // Araç C: saat
-      {vehicle_id:"CH1-C", vendor_id:"CH-001", vehicle_name:"Araç C", cost_model:"PER_HOUR", fixed_fee_eur:0, km_rate_eur:0, hour_rate_eur:45, is_active:true, note:"Saatlik fiyat"}
+      {vehicle_id:"CH1-A", vendor_id:"CH-001", vehicle_name:"Araç A", cost_model:"FIXED", fixed_fee_eur:250, km_rate_eur:0, hour_rate_eur:0, is_active:true, note:"Sabit"},
+      {vehicle_id:"CH1-B", vendor_id:"CH-001", vehicle_name:"Araç B", cost_model:"PER_KM", fixed_fee_eur:0, km_rate_eur:0.85, hour_rate_eur:0, is_active:true, note:"KM"},
+      {vehicle_id:"CH1-C", vendor_id:"CH-001", vehicle_name:"Araç C", cost_model:"PER_HOUR", fixed_fee_eur:0, km_rate_eur:0, hour_rate_eur:45, is_active:true, note:"Saat"}
     ],
     routes: [
       {
@@ -212,16 +280,23 @@ function seedData(){
         driver_id: "",
         charter_vendor_id: "CH-001",
         charter_vehicle_id: "CH1-A",
-        charter_cost_override_eur: 0,
-        sales_price_eur: 0,   // 0 ise tur geliri toplamı gelir kabul edilir
+        charter_cost_override_enabled: true,
+        charter_cost_override_eur: 250,
+        sales_price_eur: 0,
         tour_ids: ["TUR-0001","TUR-0002"],
-        note: "Örnek rota (Charter Araç A sabit)"
+        note: "Örnek rota (override ile)"
       }
     ]
   };
 }
 
 let state = null;
+
+function mergeSettings(existing){
+  const d = defaultSettings();
+  return {...d, ...(existing||{})};
+}
+
 function loadState(){
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw){
@@ -231,6 +306,9 @@ function loadState(){
   }
   try{
     state = JSON.parse(raw);
+    if (!state.settings) state.settings = defaultSettings();
+    state.settings = mergeSettings(state.settings);
+
     if (!state.drivers) state.drivers = [];
     if (!state.contracts) state.contracts = [];
     if (!state.tours) state.tours = [];
@@ -238,18 +316,36 @@ function loadState(){
     if (!state.charters) state.charters = [];
     if (!state.charter_vehicles) state.charter_vehicles = [];
 
-    // basit migration: eski route’larda alan yoksa ekle
+    // tours migration: eksik alanları tamamla
+    state.tours = state.tours.map(t => ({
+      tour_id: "",
+      start_address: "",
+      via_stops: "",
+      end_address: "",
+      customer: "",
+      start_dt: "",
+      end_dt: "",
+      tour_price_eur: 0,
+      tour_km: 0,
+      vehicle_type: "",
+      ...t
+    }));
+
+    // routes migration
     state.routes = state.routes.map(r => ({
       charter_vendor_id: r.charter_vendor_id || "",
       charter_vehicle_id: r.charter_vehicle_id || "",
       charter_cost_override_eur: r.charter_cost_override_eur || 0,
+      charter_cost_override_enabled: (r.charter_cost_override_enabled !== undefined) ? r.charter_cost_override_enabled : false,
       ...r
     }));
+
   } catch(e){
     state = seedData();
     saveState();
   }
 }
+
 function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 
 /* =========================
@@ -268,7 +364,7 @@ document.getElementById("modalBack").addEventListener("click", (e) => {
 });
 
 /* =========================
-   Time calculations
+   Time calculations (settings-based night window)
    ========================= */
 function nextMidnight(d){ const x = new Date(d); x.setHours(24,0,0,0); return x; }
 function sameDayMidnight(d){ const x = new Date(d); x.setHours(0,0,0,0); return x; }
@@ -278,11 +374,49 @@ function overlapMinutes(aStart, aEnd, bStart, bEnd){
   const diff = e - s;
   return diff > 0 ? diff/60000 : 0;
 }
+function parseHHMM(s){
+  const m = String(s||"").match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  const hh = Math.max(0, Math.min(23, parseInt(m[1],10)));
+  const mm = Math.max(0, Math.min(59, parseInt(m[2],10)));
+  return {hh, mm};
+}
+function computeNightOverlapForDay(segStart, segEnd, dayMid, nightStart, nightEnd){
+  // nightStart/nightEnd: {hh,mm}
+  // cross-midnight destekli
+  const startMin = nightStart.hh*60 + nightStart.mm;
+  const endMin = nightEnd.hh*60 + nightEnd.mm;
+
+  let nightMin = 0;
+
+  if (startMin === endMin) return 0; // 24 saat night gibi yorumlamıyoruz; pratikte kapalı
+
+  if (startMin < endMin){
+    // same-day window (örn 22:00-23:00)
+    const wS = new Date(dayMid); wS.setHours(nightStart.hh, nightStart.mm, 0, 0);
+    const wE = new Date(dayMid); wE.setHours(nightEnd.hh, nightEnd.mm, 0, 0);
+    nightMin += overlapMinutes(segStart, segEnd, wS, wE);
+  } else {
+    // cross-midnight window (örn 21:00-04:00)
+    const w1S = new Date(dayMid); w1S.setHours(nightStart.hh, nightStart.mm, 0, 0);
+    const w1E = new Date(dayMid); w1E.setHours(24,0,0,0);
+    nightMin += overlapMinutes(segStart, segEnd, w1S, w1E);
+
+    const w2S = new Date(dayMid); w2S.setHours(0,0,0,0);
+    const w2E = new Date(dayMid); w2E.setHours(nightEnd.hh, nightEnd.mm, 0, 0);
+    nightMin += overlapMinutes(segStart, segEnd, w2S, w2E);
+  }
+  return nightMin;
+}
+
 function computeTimeMetrics(startStr, endStr){
   if (!startStr || !endStr) return null;
   const start = new Date(startStr);
   const end = new Date(endStr);
   if (isNaN(start) || isNaN(end) || end <= start) return null;
+
+  const nightStart = parseHHMM(state?.settings?.night_start) || {hh:21, mm:0};
+  const nightEnd   = parseHHMM(state?.settings?.night_end)   || {hh:4, mm:0};
 
   let totalMin = (end - start)/60000;
   let nightMin = 0;
@@ -299,13 +433,7 @@ function computeTimeMetrics(startStr, endStr){
     if (dow === 6) satMin += segMinutes;
     if (dow === 0) sunMin += segMinutes;
 
-    const w1s = new Date(dayMid); w1s.setHours(0,0,0,0);
-    const w1e = new Date(dayMid); w1e.setHours(4,0,0,0);
-    nightMin += overlapMinutes(cursor, segEnd, w1s, w1e);
-
-    const w2s = new Date(dayMid); w2s.setHours(21,0,0,0);
-    const w2e = new Date(dayMid); w2e.setHours(24,0,0,0);
-    nightMin += overlapMinutes(cursor, segEnd, w2s, w2e);
+    nightMin += computeNightOverlapForDay(cursor, segEnd, dayMid, nightStart, nightEnd);
 
     cursor = segEnd;
   }
@@ -325,10 +453,12 @@ function ptLabel(code){ return PROFILE_TYPES.find(x=>x.code===code)?.label || co
 function routeModeLabel(code){ return ROUTE_DRIVER_MODE.find(x=>x.code===code)?.label || code || ""; }
 function charterModelLabel(code){ return CHARTER_COST_MODEL.find(x=>x.code===code)?.label || code || ""; }
 
+function currency(){ return state?.settings?.currency_symbol || "€"; }
+function money(x){ return `${currency()}${fmt(num(x))}`; }
+
 function getContract(contract_id){ return state.contracts.find(c => String(c.contract_id) === String(contract_id)) || null; }
 function getDriver(driver_id){ return state.drivers.find(d => String(d.driver_id) === String(driver_id)) || null; }
 function getTour(tour_id){ return state.tours.find(t => String(t.tour_id) === String(tour_id)) || null; }
-
 function getCharter(vendor_id){ return state.charters.find(v => String(v.vendor_id)===String(vendor_id)) || null; }
 function getCharterVehicle(vehicle_id){ return state.charter_vehicles.find(v => String(v.vehicle_id)===String(vehicle_id)) || null; }
 
@@ -357,7 +487,6 @@ function removeContract(contract_id){
   state.drivers = state.drivers.map(d => (String(d.contract_id) === String(contract_id)) ? ({...d, contract_id:""}) : d);
   saveState();
 }
-
 function upsertTour(rec){
   const idx = state.tours.findIndex(x => String(x.tour_id) === String(rec.tour_id));
   if (idx >= 0) state.tours[idx] = rec; else state.tours.push(rec);
@@ -368,7 +497,6 @@ function removeTour(tour_id){
   state.tours = state.tours.filter(x => String(x.tour_id) !== String(tour_id));
   saveState();
 }
-
 function upsertCharter(rec){
   const idx = state.charters.findIndex(x => String(x.vendor_id)===String(rec.vendor_id));
   if (idx>=0) state.charters[idx]=rec; else state.charters.push(rec);
@@ -385,7 +513,6 @@ function removeCharter(vendor_id){
   state.charters = state.charters.filter(v => String(v.vendor_id)!==String(vendor_id));
   saveState();
 }
-
 function upsertCharterVehicle(rec){
   const idx = state.charter_vehicles.findIndex(x => String(x.vehicle_id)===String(rec.vehicle_id));
   if (idx>=0) state.charter_vehicles[idx]=rec; else state.charter_vehicles.push(rec);
@@ -396,7 +523,6 @@ function removeCharterVehicle(vehicle_id){
   state.charter_vehicles = state.charter_vehicles.filter(v => String(v.vehicle_id)!==String(vehicle_id));
   saveState();
 }
-
 function upsertRoute(rec){
   const idx = state.routes.findIndex(x => String(x.route_no) === String(rec.route_no));
   if (idx >= 0) state.routes[idx] = rec; else state.routes.push(rec);
@@ -466,12 +592,25 @@ function calcRouteNumbers(route){
 
   let totalH = 0, nightH = 0, satH = 0, sunH = 0;
 
+  // Tarih: earliest start_dt (dashboard filtre için)
+  let minStart = null;
+  let maxEnd = null;
+
   for (const id of tourIds){
     const t = getTour(id);
     if (!t) continue;
 
     tourRevenue += num(t.tour_price_eur);
     totalKm += num(t.tour_km);
+
+    if (t.start_dt){
+      const ds = new Date(t.start_dt);
+      if (!isNaN(ds)) minStart = (minStart===null || ds < minStart) ? ds : minStart;
+    }
+    if (t.end_dt){
+      const de = new Date(t.end_dt);
+      if (!isNaN(de)) maxEnd = (maxEnd===null || de > maxEnd) ? de : maxEnd;
+    }
 
     const m = computeTimeMetrics(t.start_dt, t.end_dt);
     if (m){
@@ -491,21 +630,18 @@ function calcRouteNumbers(route){
   const mode = String(route.driver_mode || "CHARTER");
 
   if (mode === "CHARTER"){
-    // override varsa onu kullan
-    const override = num(route.charter_cost_override_eur);
-    if (override > 0){
-      charterCost = override;
+    const cv = route.charter_vehicle_id ? getCharterVehicle(route.charter_vehicle_id) : null;
+    if (cv){
+      if (cv.cost_model === "FIXED") charterCostComputed = num(cv.fixed_fee_eur);
+      if (cv.cost_model === "PER_KM") charterCostComputed = num(cv.km_rate_eur) * totalKm;
+      if (cv.cost_model === "PER_HOUR") charterCostComputed = num(cv.hour_rate_eur) * totalH;
     } else {
-      const cv = route.charter_vehicle_id ? getCharterVehicle(route.charter_vehicle_id) : null;
-      if (cv){
-        if (cv.cost_model === "FIXED") charterCostComputed = num(cv.fixed_fee_eur);
-        if (cv.cost_model === "PER_KM") charterCostComputed = num(cv.km_rate_eur) * totalKm;
-        if (cv.cost_model === "PER_HOUR") charterCostComputed = num(cv.hour_rate_eur) * totalH;
-        charterCost = charterCostComputed;
-      } else {
-        charterCost = 0;
-      }
+      charterCostComputed = 0;
     }
+
+    const overrideEnabled = asBool(route.charter_cost_override_enabled);
+    const overrideValue = num(route.charter_cost_override_eur);
+    charterCost = overrideEnabled ? overrideValue : charterCostComputed;
   }
 
   if (mode === "TLN" || mode === "ZZP"){
@@ -531,8 +667,12 @@ function calcRouteNumbers(route){
 
   const costUsed = (mode === "CHARTER") ? charterCost : driverCost;
   const profit = revenueUsed - costUsed;
+  const marginPct = (revenueUsed > 0) ? (profit / revenueUsed * 100) : 0;
 
   return {
+    route_start_dt: minStart ? minStart.toISOString().slice(0,16) : "",
+    route_end_dt: maxEnd ? maxEnd.toISOString().slice(0,16) : "",
+
     tour_revenue_eur: tourRevenue,
     revenue_used_eur: revenueUsed,
 
@@ -547,7 +687,8 @@ function calcRouteNumbers(route){
     charter_cost_computed_eur: charterCostComputed,
     cost_used_eur: costUsed,
 
-    profit_eur: profit
+    profit_eur: profit,
+    margin_pct: marginPct
   };
 }
 
@@ -555,13 +696,16 @@ function calcRouteNumbers(route){
    Tabs / Render
    ========================= */
 const TABS = [
-  {id:"drivers", label:"Sürücüler"},
+  {id:"dashboard", label:"Dashboard"},
   {id:"contracts", label:"Sözleşmeler"},
+  {id:"drivers", label:"Sürücüler"},
   {id:"tours", label:"Turlar"},
+  {id:"routes", label:"Rotalar"},
   {id:"charters", label:"Charterlar"},
-  {id:"routes", label:"Rotalar"}
+  {id:"settings", label:"Ayarlar"}
 ];
-let activeTab = "routes";
+
+let activeTab = "dashboard";
 
 function renderTabs(){
   const el = document.getElementById("tabs");
@@ -579,11 +723,361 @@ function render(){
   renderTabs();
   const view = document.getElementById("view");
   view.innerHTML = "";
-  if (activeTab === "drivers") view.appendChild(renderDrivers());
+  if (activeTab === "dashboard") view.appendChild(renderDashboard());
   if (activeTab === "contracts") view.appendChild(renderContracts());
+  if (activeTab === "drivers") view.appendChild(renderDrivers());
   if (activeTab === "tours") view.appendChild(renderTours());
-  if (activeTab === "charters") view.appendChild(renderCharters());
   if (activeTab === "routes") view.appendChild(renderRoutes());
+  if (activeTab === "charters") view.appendChild(renderCharters());
+  if (activeTab === "settings") view.appendChild(renderSettings());
+}
+
+/* =========================
+   Dashboard
+   ========================= */
+function toDateOnlyISO(d){
+  const x = new Date(d);
+  if (isNaN(x)) return "";
+  const yyyy = x.getFullYear();
+  const mm = String(x.getMonth()+1).padStart(2,"0");
+  const dd = String(x.getDate()).padStart(2,"0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+function startOfMonth(d){
+  const x = new Date(d); x.setDate(1); x.setHours(0,0,0,0); return x;
+}
+function addDays(d, n){
+  const x = new Date(d); x.setDate(x.getDate()+n); return x;
+}
+function inRange(dateStr, fromDateStr, toDateStr){
+  if (!fromDateStr && !toDateStr) return true;
+  const d = new Date(dateStr);
+  if (isNaN(d)) return false;
+  if (fromDateStr){
+    const f = new Date(fromDateStr+"T00:00");
+    if (!isNaN(f) && d < f) return false;
+  }
+  if (toDateStr){
+    const t = new Date(toDateStr+"T23:59");
+    if (!isNaN(t) && d > t) return false;
+  }
+  return true;
+}
+
+function profitClass(p){
+  const warn = num(state?.settings?.profit_warn_threshold);
+  if (p < 0) return "tagNeg";
+  if (p < warn) return "tagWarn";
+  return "tagPos";
+}
+function renderDashboard(){
+  const card = document.createElement("div");
+  card.className = "card";
+
+  // Default date range
+  const now = new Date();
+  const def = state.settings.dashboard_default_range || "ALL";
+  let defFrom = "";
+  let defTo = "";
+  if (def === "LAST_7"){
+    defFrom = toDateOnlyISO(addDays(now, -7));
+    defTo = toDateOnlyISO(now);
+  } else if (def === "THIS_MONTH"){
+    defFrom = toDateOnlyISO(startOfMonth(now));
+    defTo = toDateOnlyISO(now);
+  }
+
+  card.innerHTML = `
+    <div class="row">
+      <h3 style="margin:0;">Dashboard</h3>
+      <div style="flex:1"></div>
+      <span class="chip">Para Birimi: <b>${esc(currency())}</b></span>
+      <span class="chip">Gece: <b>${esc(state.settings.night_start)}–${esc(state.settings.night_end)}</b></span>
+    </div>
+
+    <div class="row" style="margin-top:10px;">
+      <label>Başlangıç (opsiyonel)<br/><input id="db_from" type="date" value="${esc(defFrom)}"></label>
+      <label>Bitiş (opsiyonel)<br/><input id="db_to" type="date" value="${esc(defTo)}"></label>
+
+      <label>Hızlı Filtre<br/>
+        <select id="db_quick">
+          <option value="KEEP">—</option>
+          <option value="ALL">Tümü</option>
+          <option value="LAST_7">Son 7 Gün</option>
+          <option value="THIS_MONTH">Bu Ay</option>
+        </select>
+      </label>
+
+      <label>Zarar Gösterimi<br/>
+        <select id="db_loss_only">
+          <option value="false">Tümü</option>
+          <option value="true">Sadece Zarar</option>
+        </select>
+      </label>
+
+      <button class="primary" id="db_apply">Uygula</button>
+    </div>
+
+    <div class="kpiGrid" style="margin-top:12px;" id="kpiGrid"></div>
+
+    <div class="grid2" style="margin-top:12px;">
+      <div class="card" style="box-shadow:none;">
+        <h4 style="margin:0 0 8px;">Kâr/Zarar Dağılımı (Top 10 mutlak değer)</h4>
+        <div class="barWrap" id="barWrap"></div>
+      </div>
+
+      <div class="card" style="box-shadow:none;">
+        <h4 style="margin:0 0 8px;">En İyi / En Kötü Rotalar</h4>
+        <div class="scroller" style="max-height:360px;">
+          <table>
+            <thead>
+              <tr>
+                <th>Rota</th><th>Tarih</th><th class="right">Gelir</th><th class="right">Maliyet</th><th class="right">Kâr</th><th class="right">Marj %</th>
+              </tr>
+            </thead>
+            <tbody id="bestWorstBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="box-shadow:none; margin-top:12px;">
+      <h4 style="margin:0 0 8px;">Filtrelenmiş Rotalar</h4>
+      <div class="scroller" style="max-height:420px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Rota</th><th>Sürücü Tipi</th><th>Tarih</th>
+              <th class="right">Tur Gelir</th><th class="right">Gelir Kullanılan</th>
+              <th class="right">Maliyet</th><th class="right">Kâr</th><th class="right">Marj %</th>
+              <th>Override?</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="routesBody"></tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  const fromEl = card.querySelector("#db_from");
+  const toEl = card.querySelector("#db_to");
+  const quickEl = card.querySelector("#db_quick");
+  const lossOnlyEl = card.querySelector("#db_loss_only");
+  const applyBtn = card.querySelector("#db_apply");
+
+  const kpiGrid = card.querySelector("#kpiGrid");
+  const barWrap = card.querySelector("#barWrap");
+  const bestWorstBody = card.querySelector("#bestWorstBody");
+  const routesBody = card.querySelector("#routesBody");
+
+  function routeDisplayDate(n){
+    // route_start_dt ISO => date only
+    if (!n.route_start_dt) return "";
+    return n.route_start_dt.slice(0,10);
+  }
+
+  function computeFiltered(){
+    const from = fromEl.value;
+    const to = toEl.value;
+    const lossOnly = (lossOnlyEl.value === "true");
+
+    const list = state.routes.map(r => {
+      const n = calcRouteNumbers(r);
+      const dt = routeDisplayDate(n);
+      return {r, n, dt};
+    }).filter(x => x.dt && inRange(x.dt, from, to));
+
+    const filtered = lossOnly ? list.filter(x => num(x.n.profit_eur) < 0) : list;
+    return filtered;
+  }
+
+  function renderKpis(list){
+    const totalRevenue = list.reduce((a,x)=>a+num(x.n.revenue_used_eur), 0);
+    const totalCost = list.reduce((a,x)=>a+num(x.n.cost_used_eur), 0);
+    const totalProfit = list.reduce((a,x)=>a+num(x.n.profit_eur), 0);
+    const routesCount = list.length;
+    const lossCount = list.filter(x=>num(x.n.profit_eur) < 0).length;
+    const posCount = routesCount - lossCount;
+    const margin = totalRevenue > 0 ? (totalProfit/totalRevenue*100) : 0;
+
+    const profitCls = profitClass(totalProfit);
+
+    kpiGrid.innerHTML = `
+      <div class="kpi">
+        <div class="label">Toplam Gelir (kullanılan)</div>
+        <div class="value">${money(totalRevenue)}</div>
+        <div class="sub">Filtrelenmiş rotalar</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Toplam Maliyet</div>
+        <div class="value">${money(totalCost)}</div>
+        <div class="sub">TLN/ZZP/Charter</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Toplam Kâr/Zarar</div>
+        <div class="value"><span class="pill ${profitCls}">${money(totalProfit)}</span></div>
+        <div class="sub">Marj: ${margin.toFixed(2)}%</div>
+      </div>
+
+      <div class="kpi">
+        <div class="label">Rota Sayısı</div>
+        <div class="value">${routesCount}</div>
+        <div class="sub"><span class="pill tagPos">Kârlı: ${posCount}</span> <span class="pill tagNeg">Zararlı: ${lossCount}</span></div>
+      </div>
+    `;
+  }
+
+  function renderBars(list){
+    // Top 10 by absolute profit
+    const top = list.slice()
+      .sort((a,b)=>Math.abs(num(b.n.profit_eur)) - Math.abs(num(a.n.profit_eur)))
+      .slice(0,10);
+
+    const maxAbs = top.reduce((m,x)=>Math.max(m, Math.abs(num(x.n.profit_eur))), 1);
+
+    barWrap.innerHTML = "";
+    for (const x of top){
+      const p = num(x.n.profit_eur);
+      const w = Math.max(2, Math.round(Math.abs(p)/maxAbs*100));
+      const isNeg = p < 0;
+
+      const row = document.createElement("div");
+      row.className = "barRow";
+      row.innerHTML = `
+        <div class="barLabel" title="${esc(x.r.route_no)}">${esc(x.r.route_no)}</div>
+        <div class="barTrack">
+          <div class="${isNeg ? "barFillNeg" : "barFillPos"}" style="width:${w}%;"></div>
+        </div>
+        <div class="barVal">${money(p)}</div>
+      `;
+      barWrap.appendChild(row);
+    }
+
+    if (!top.length){
+      barWrap.innerHTML = `<div class="muted">Filtreye uygun rota bulunamadı.</div>`;
+    }
+  }
+
+  function renderBestWorst(list){
+    bestWorstBody.innerHTML = "";
+
+    const sorted = list.slice().sort((a,b)=>num(b.n.profit_eur) - num(a.n.profit_eur));
+    const best = sorted.slice(0,5);
+    const worst = sorted.slice(-5).reverse();
+
+    function addSection(title){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td colspan="6" style="background:#fbfbfb;"><b>${esc(title)}</b></td>`;
+      bestWorstBody.appendChild(tr);
+    }
+
+    addSection("En İyi 5");
+    for (const x of best){
+      const p = num(x.n.profit_eur);
+      const cls = profitClass(p);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="kbd">${esc(x.r.route_no)}</td>
+        <td class="kbd">${esc(x.dt||"")}</td>
+        <td class="right">${money(x.n.revenue_used_eur)}</td>
+        <td class="right">${money(x.n.cost_used_eur)}</td>
+        <td class="right"><span class="pill ${cls}">${money(p)}</span></td>
+        <td class="right">${num(x.n.margin_pct).toFixed(2)}%</td>
+      `;
+      bestWorstBody.appendChild(tr);
+    }
+
+    addSection("En Kötü 5");
+    for (const x of worst){
+      const p = num(x.n.profit_eur);
+      const cls = profitClass(p);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="kbd">${esc(x.r.route_no)}</td>
+        <td class="kbd">${esc(x.dt||"")}</td>
+        <td class="right">${money(x.n.revenue_used_eur)}</td>
+        <td class="right">${money(x.n.cost_used_eur)}</td>
+        <td class="right"><span class="pill ${cls}">${money(p)}</span></td>
+        <td class="right">${num(x.n.margin_pct).toFixed(2)}%</td>
+      `;
+      bestWorstBody.appendChild(tr);
+    }
+
+    if (!list.length){
+      bestWorstBody.innerHTML = `<tr><td colspan="6" class="muted">Veri yok.</td></tr>`;
+    }
+  }
+
+  function renderRoutesTable(list){
+    routesBody.innerHTML = "";
+    const sorted = list.slice().sort((a,b)=> (new Date(b.dt) - new Date(a.dt)) || (num(b.n.profit_eur) - num(a.n.profit_eur)));
+
+    for (const x of sorted){
+      const p = num(x.n.profit_eur);
+      const cls = profitClass(p);
+      const isNeg = p < 0;
+      const override = (x.r.driver_mode==="CHARTER") ? (asBool(x.r.charter_cost_override_enabled) ? "Evet" : "Hayır") : "-";
+
+      const tr = document.createElement("tr");
+      tr.className = isNeg ? "rowNeg" : "rowPos";
+      tr.innerHTML = `
+        <td class="kbd">${esc(x.r.route_no)}</td>
+        <td>${esc(routeModeLabel(x.r.driver_mode))}</td>
+        <td class="kbd">${esc(x.dt||"")}</td>
+        <td class="right">${money(x.n.tour_revenue_eur)}</td>
+        <td class="right">${money(x.n.revenue_used_eur)}</td>
+        <td class="right">${money(x.n.cost_used_eur)}</td>
+        <td class="right"><span class="pill ${cls}">${money(p)}</span></td>
+        <td class="right">${num(x.n.margin_pct).toFixed(2)}%</td>
+        <td>${override}</td>
+        <td><button data-open="${esc(x.r.route_no)}">Aç</button></td>
+      `;
+      routesBody.appendChild(tr);
+    }
+
+    if (!sorted.length){
+      routesBody.innerHTML = `<tr><td colspan="10" class="muted">Filtreye uygun rota yok.</td></tr>`;
+    }
+  }
+
+  function apply(){
+    // quick selection
+    const q = quickEl.value;
+    if (q === "ALL"){
+      fromEl.value = "";
+      toEl.value = "";
+    } else if (q === "LAST_7"){
+      fromEl.value = toDateOnlyISO(addDays(new Date(), -7));
+      toEl.value = toDateOnlyISO(new Date());
+    } else if (q === "THIS_MONTH"){
+      fromEl.value = toDateOnlyISO(startOfMonth(new Date()));
+      toEl.value = toDateOnlyISO(new Date());
+    }
+
+    const filtered = computeFiltered();
+    renderKpis(filtered);
+    renderBars(filtered);
+    renderBestWorst(filtered);
+    renderRoutesTable(filtered);
+  }
+
+  applyBtn.addEventListener("click", apply);
+
+  // open route from dashboard
+  card.addEventListener("click", (e) => {
+    const id = e.target?.getAttribute?.("data-open");
+    if (!id) return;
+    activeTab = "routes";
+    render();
+    // kullanıcı rotalar ekranında ilgili satırı manuel görebilir; isterseniz otomatik view açmayı da ekleyebiliriz
+  });
+
+  // initial
+  apply();
+  return card;
 }
 
 /* =========================
@@ -751,8 +1245,8 @@ function renderContracts(){
         <thead>
           <tr>
             <th>Sözleşme ID</th><th>Profil Tipi</th>
-            <th class="right">Saat €</th><th class="right">KM €</th>
-            <th class="right">Gece %</th><th class="right">ADR €/km</th>
+            <th class="right">Saat</th><th class="right">KM</th>
+            <th class="right">Gece %</th><th class="right">ADR</th>
             <th class="right">OT Eşik</th><th class="right">OT %</th>
             <th class="right">Cts %</th><th class="right">Paz %</th>
             <th>Not</th><th>İşlem</th>
@@ -773,10 +1267,10 @@ function renderContracts(){
       tr.innerHTML = `
         <td class="kbd">${esc(c.contract_id)}</td>
         <td>${esc(ptLabel(c.profile_type))}</td>
-        <td class="right">€${fmt(num(c.hour_rate_eur))}</td>
-        <td class="right">€${fmt(num(c.km_rate_eur))}</td>
+        <td class="right">${money(num(c.hour_rate_eur))}</td>
+        <td class="right">${money(num(c.km_rate_eur))}</td>
         <td class="right">${fmt(num(c.night_premium_pct))}</td>
-        <td class="right">€${fmt(num(c.adr_per_km_eur))}</td>
+        <td class="right">${money(num(c.adr_per_km_eur))}</td>
         <td class="right">${fmt(num(c.tln_overtime_threshold_hours))}</td>
         <td class="right">${fmt(num(c.tln_overtime_pct))}</td>
         <td class="right">${fmt(num(c.tln_sat_pct))}</td>
@@ -812,10 +1306,10 @@ function renderContracts(){
       <div class="row">
         <label>Sözleşme ID *<br/><input id="c_id" type="text" value="${esc(c.contract_id)}" ${existing ? "disabled" : ""}></label>
         <label>Profil Tipi *<br/><select id="c_pt">${buildProfileTypeOptions(c.profile_type)}</select></label>
-        <label>Saat Ücreti (€)<br/><input id="c_hr" type="number" step="0.01" value="${esc(c.hour_rate_eur)}"></label>
-        <label>KM Ücreti (€)<br/><input id="c_km" type="number" step="0.01" value="${esc(c.km_rate_eur)}"></label>
+        <label>Saat Ücreti<br/><input id="c_hr" type="number" step="0.01" value="${esc(c.hour_rate_eur)}"></label>
+        <label>KM Ücreti<br/><input id="c_km" type="number" step="0.01" value="${esc(c.km_rate_eur)}"></label>
         <label>Gece Primi %<br/><input id="c_night" type="number" step="0.01" value="${esc(c.night_premium_pct)}"></label>
-        <label>ADR €/km<br/><input id="c_adr" type="number" step="0.01" value="${esc(c.adr_per_km_eur)}"></label>
+        <label>ADR (€/km)<br/><input id="c_adr" type="number" step="0.01" value="${esc(c.adr_per_km_eur)}"></label>
       </div>
 
       <div class="row" style="margin-top:10px;">
@@ -888,7 +1382,7 @@ function renderContracts(){
 }
 
 /* =========================
-   Tours UI (KM eklendi)
+   Tours UI (full fields)
    ========================= */
 function renderTours(){
   const card = document.createElement("div");
@@ -901,7 +1395,9 @@ function renderTours(){
       <div style="flex:1"></div>
       <button class="primary" id="btnAddTour">Yeni Tur</button>
     </div>
-    <div class="small" style="margin-top:6px;">Tur Fiyatı = Müşteriden alınan gelir. KM alanı charter km maliyeti için kullanılır.</div>
+    <div class="small" style="margin-top:6px;">
+      Tur Fiyatı = Müşteriden alınan gelir. (Charter KM maliyeti için Tur KM alanı kullanılır.)
+    </div>
 
     <div id="tourFormSlot"></div>
 
@@ -909,8 +1405,17 @@ function renderTours(){
       <table>
         <thead>
           <tr>
-            <th>TURID</th><th>Müşteri</th><th>Başlangıç</th><th>Bitiş</th>
-            <th class="right">Gelir (€)</th><th class="right">KM</th><th>Araç Tipi</th><th>İşlem</th>
+            <th>TURID</th>
+            <th>Müşteri</th>
+            <th>Tur Başlangıç Adresi</th>
+            <th>Ara Duraklar</th>
+            <th>Tur Bitiş Adresi</th>
+            <th>Tur Başlangıç Saati</th>
+            <th>Tur Bitiş Saati</th>
+            <th class="right">Tur Fiyatı</th>
+            <th class="right">KM</th>
+            <th>Araç Tipi</th>
+            <th>İşlem</th>
           </tr>
         </thead>
         <tbody id="tourTbody"></tbody>
@@ -921,6 +1426,14 @@ function renderTours(){
   const tbody = card.querySelector("#tourTbody");
   const slot = card.querySelector("#tourFormSlot");
 
+  function shortStops(via){
+    const s = String(via||"").trim();
+    if (!s) return "";
+    const lines = s.split("\n").map(x=>x.trim()).filter(Boolean);
+    const head = lines.slice(0,2).join(" | ");
+    return lines.length > 2 ? (head + " ...") : head;
+  }
+
   function renderTable(){
     tbody.innerHTML = "";
     for (const t of rows){
@@ -928,12 +1441,16 @@ function renderTours(){
       tr.innerHTML = `
         <td class="kbd">${esc(t.tour_id)}</td>
         <td>${esc(t.customer || "")}</td>
+        <td>${esc(t.start_address || "")}</td>
+        <td>${esc(shortStops(t.via_stops))}</td>
+        <td>${esc(t.end_address || "")}</td>
         <td class="kbd">${esc(t.start_dt || "")}</td>
         <td class="kbd">${esc(t.end_dt || "")}</td>
-        <td class="right">€${fmt(num(t.tour_price_eur))}</td>
+        <td class="right">${money(num(t.tour_price_eur))}</td>
         <td class="right">${fmt(num(t.tour_km))}</td>
         <td>${esc(t.vehicle_type || "")}</td>
         <td>
+          <button data-view="${esc(t.tour_id)}">Görüntüle</button>
           <button data-edit="${esc(t.tour_id)}">Düzenle</button>
           <button class="danger" data-del="${esc(t.tour_id)}">Sil</button>
         </td>
@@ -944,8 +1461,16 @@ function renderTours(){
 
   function openTourForm(existing){
     const t = existing ? {...existing} : {
-      tour_id:"", start_address:"", via_stops:"", end_address:"", customer:"",
-      start_dt:"", end_dt:"", tour_price_eur:0, tour_km:0, vehicle_type:""
+      tour_id:"",
+      start_address:"",
+      via_stops:"",
+      end_address:"",
+      customer:"",
+      start_dt:"",
+      end_dt:"",
+      tour_price_eur:0,
+      tour_km:0,
+      vehicle_type:""
     };
 
     slot.innerHTML = `
@@ -954,15 +1479,31 @@ function renderTours(){
 
       <div class="row">
         <label>TURID *<br/><input id="t_id" type="text" value="${esc(t.tour_id)}" ${existing ? "disabled" : ""}></label>
-        <label>Müşteri<br/><input id="t_customer" type="text" value="${esc(t.customer||"")}"></label>
+        <label>Müşteri (Customer)<br/><input id="t_customer" type="text" value="${esc(t.customer||"")}"></label>
         <label>Araç Tipi<br/><input id="t_vehicle" type="text" value="${esc(t.vehicle_type||"")}"></label>
-        <label>Tur Geliri (€)<br/><input id="t_price" type="number" step="0.01" value="${esc(t.tour_price_eur)}"></label>
+        <label>Tur Fiyatı<br/><input id="t_price" type="number" step="0.01" value="${esc(t.tour_price_eur)}"></label>
         <label>Tur KM<br/><input id="t_km" type="number" step="0.01" value="${esc(t.tour_km||0)}"></label>
       </div>
 
       <div class="row" style="margin-top:10px;">
-        <label>Başlangıç Saati<br/><input id="t_start_dt" type="datetime-local" value="${esc(t.start_dt||"")}"></label>
-        <label>Bitiş Saati<br/><input id="t_end_dt" type="datetime-local" value="${esc(t.end_dt||"")}"></label>
+        <label style="flex:1; min-width:300px;">Tur Başlangıç Adresi<br/>
+          <input id="t_start_addr" type="text" value="${esc(t.start_address||"")}" style="width:100%;">
+        </label>
+
+        <label style="flex:1; min-width:300px;">Tur Bitiş Adresi<br/>
+          <input id="t_end_addr" type="text" value="${esc(t.end_address||"")}" style="width:100%;">
+        </label>
+      </div>
+
+      <div style="margin-top:10px;">
+        <label>Varsa Ara Duraklar (her satır 1 durak)<br/>
+          <textarea id="t_via">${esc(t.via_stops||"")}</textarea>
+        </label>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <label>Tur Başlangıç Saati<br/><input id="t_start_dt" type="datetime-local" value="${esc(t.start_dt||"")}"></label>
+        <label>Tur Bitiş Saati<br/><input id="t_end_dt" type="datetime-local" value="${esc(t.end_dt||"")}"></label>
       </div>
 
       <div class="row" style="margin-top:10px;">
@@ -986,19 +1527,23 @@ function renderTours(){
         const a = new Date(start_dt);
         const b = new Date(end_dt);
         if (!isNaN(a) && !isNaN(b) && b < a){
-          return alert("Bitiş saati başlangıçtan küçük olamaz.");
+          return alert("Tur Bitiş Saati, Başlangıç Saatinden küçük olamaz.");
         }
       }
 
       const rec = {
-        ...t,
         tour_id,
         customer: slot.querySelector("#t_customer").value.trim(),
-        vehicle_type: slot.querySelector("#t_vehicle").value.trim(),
+        start_address: slot.querySelector("#t_start_addr").value.trim(),
+        via_stops: slot.querySelector("#t_via").value.trim(),
+        end_address: slot.querySelector("#t_end_addr").value.trim(),
+        start_dt,
+        end_dt,
         tour_price_eur: num(slot.querySelector("#t_price").value),
         tour_km: num(slot.querySelector("#t_km").value),
-        start_dt, end_dt
+        vehicle_type: slot.querySelector("#t_vehicle").value.trim()
       };
+
       upsertTour(rec);
       slot.innerHTML = "";
       render();
@@ -1010,13 +1555,40 @@ function renderTours(){
   card.querySelector("#btnAddTour").addEventListener("click", () => openTourForm(null));
 
   card.addEventListener("click", (e) => {
+    const viewId = e.target?.getAttribute?.("data-view");
     const editId = e.target?.getAttribute?.("data-edit");
     const delId = e.target?.getAttribute?.("data-del");
+
+    if (viewId){
+      const t = state.tours.find(x => String(x.tour_id)===String(viewId));
+      if (!t) return;
+
+      const vias = String(t.via_stops||"").trim()
+        ? `<ul>${String(t.via_stops).split("\n").map(x=>x.trim()).filter(Boolean).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`
+        : `<span class="muted">Yok</span>`;
+
+      openModal("Tur Görüntüle", `
+        <table>
+          <tr><th>TURID</th><td class="kbd">${esc(t.tour_id)}</td></tr>
+          <tr><th>Müşteri</th><td>${esc(t.customer||"")}</td></tr>
+          <tr><th>Tur Başlangıç Adresi</th><td>${esc(t.start_address||"")}</td></tr>
+          <tr><th>Ara Duraklar</th><td>${vias}</td></tr>
+          <tr><th>Tur Bitiş Adresi</th><td>${esc(t.end_address||"")}</td></tr>
+          <tr><th>Tur Başlangıç Saati</th><td class="kbd">${esc(t.start_dt||"")}</td></tr>
+          <tr><th>Tur Bitiş Saati</th><td class="kbd">${esc(t.end_dt||"")}</td></tr>
+          <tr><th>Tur Fiyatı</th><td>${money(num(t.tour_price_eur))}</td></tr>
+          <tr><th>Tur KM</th><td>${fmt(num(t.tour_km))}</td></tr>
+          <tr><th>Araç Tipi</th><td>${esc(t.vehicle_type||"")}</td></tr>
+        </table>
+      `);
+    }
+
     if (editId){
       const t = state.tours.find(x => String(x.tour_id)===String(editId));
       if (!t) return;
       openTourForm(t);
     }
+
     if (delId){
       if (!confirm("Tur silinsin mi? (Rotalardan da çıkarılır)")) return;
       removeTour(delId);
@@ -1107,9 +1679,9 @@ function renderCharters(){
         <td>${esc(ven ? (ven.vendor_id+" | "+ven.vendor_name) : v.vendor_id)}</td>
         <td>${esc(v.vehicle_name||"")}</td>
         <td>${esc(charterModelLabel(v.cost_model))}</td>
-        <td class="right">€${fmt(num(v.fixed_fee_eur))}</td>
-        <td class="right">€${fmt(num(v.km_rate_eur))}</td>
-        <td class="right">€${fmt(num(v.hour_rate_eur))}</td>
+        <td class="right">${money(num(v.fixed_fee_eur))}</td>
+        <td class="right">${money(num(v.km_rate_eur))}</td>
+        <td class="right">${money(num(v.hour_rate_eur))}</td>
         <td>${asBool(v.is_active)?`<span class="pill">Aktif</span>`:`<span class="pill">Pasif</span>`}</td>
         <td>
           <button data-ce="${esc(v.vehicle_id)}">Düzenle</button>
@@ -1184,7 +1756,7 @@ function renderCharters(){
       </div>
 
       <div class="row" style="margin-top:10px;">
-        <label id="wrap_fixed">Sabit Ücret (€)<br/><input id="cv_fixed" type="number" step="0.01" value="${esc(v.fixed_fee_eur)}"></label>
+        <label id="wrap_fixed">Sabit Ücret<br/><input id="cv_fixed" type="number" step="0.01" value="${esc(v.fixed_fee_eur)}"></label>
         <label id="wrap_km">KM Ücreti (€/km)<br/><input id="cv_km" type="number" step="0.01" value="${esc(v.km_rate_eur)}"></label>
         <label id="wrap_hour">Saat Ücreti (€/saat)<br/><input id="cv_hour" type="number" step="0.01" value="${esc(v.hour_rate_eur)}"></label>
         <label>Aktif / Pasif<br/>
@@ -1290,7 +1862,7 @@ function renderCharters(){
 }
 
 /* =========================
-   Routes UI
+   Routes UI (includes charter computed/used/override columns)
    ========================= */
 function renderRoutes(){
   const card = document.createElement("div");
@@ -1306,7 +1878,7 @@ function renderRoutes(){
 
     <div class="hint small" style="margin-top:10px;">
       <b>Gelir:</b> Rota Satış override > 0 ise override, değilse turların toplamı. <br/>
-      <b>Maliyet:</b> TLN/ZZP = sözleşme saat ücreti; Charter = seçilen charter aracının (Sabit/KM/Saat) modeli.
+      <b>Maliyet:</b> TLN/ZZP = sözleşme saat ücreti; Charter = araç modeli veya override (Evet/Hayır).
     </div>
 
     <div id="routeFormSlot"></div>
@@ -1319,10 +1891,15 @@ function renderRoutes(){
             <th>Sürücü Tipi</th>
             <th>Atama</th>
             <th class="right">Tur Adet</th>
-            <th class="right">Tur Gelir (€)</th>
-            <th class="right">Gelir Kullanılan (€)</th>
-            <th class="right">Maliyet (€)</th>
-            <th class="right">Kâr (€)</th>
+            <th class="right">Tur Gelir</th>
+            <th class="right">Gelir Kullanılan</th>
+
+            <th class="right">Charter Hesaplanan</th>
+            <th class="right">Charter Kullanılan</th>
+            <th>Override?</th>
+
+            <th class="right">Maliyet</th>
+            <th class="right">Kâr</th>
             <th>İşlem</th>
           </tr>
         </thead>
@@ -1349,16 +1926,29 @@ function renderRoutes(){
         assign = `${ven? (ven.vendor_name) : ""}${cv? (" / "+cv.vehicle_name+" ("+charterModelLabel(cv.cost_model)+")"):""}`;
       }
 
+      const isCharter = (r.driver_mode === "CHARTER");
+      const computed = isCharter ? num(n.charter_cost_computed_eur) : null;
+      const usedCharter = isCharter ? num(n.charter_cost_eur) : null;
+      const overrideOn = isCharter ? asBool(r.charter_cost_override_enabled) : false;
+
+      const p = num(n.profit_eur);
+      const pCls = profitClass(p);
+
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td class="kbd">${esc(r.route_no)}</td>
         <td>${esc(routeModeLabel(r.driver_mode))}</td>
         <td>${esc(assign)}</td>
         <td class="right">${(r.tour_ids||[]).length}</td>
-        <td class="right">€${fmt(n.tour_revenue_eur)}</td>
-        <td class="right">€${fmt(n.revenue_used_eur)}</td>
-        <td class="right">€${fmt(n.cost_used_eur)}</td>
-        <td class="right">€${fmt(n.profit_eur)}</td>
+        <td class="right">${money(n.tour_revenue_eur)}</td>
+        <td class="right">${money(n.revenue_used_eur)}</td>
+
+        <td class="right">${isCharter ? money(computed) : "-"}</td>
+        <td class="right">${isCharter ? money(usedCharter) : "-"}</td>
+        <td>${isCharter ? (overrideOn ? `<span class="pill tagPos">Evet</span>` : `<span class="pill">Hayır</span>`) : "-"}</td>
+
+        <td class="right">${money(n.cost_used_eur)}</td>
+        <td class="right"><span class="pill ${pCls}">${money(p)}</span></td>
         <td>
           <button data-view="${esc(r.route_no)}">Görüntüle</button>
           <button data-edit="${esc(r.route_no)}">Düzenle</button>
@@ -1376,6 +1966,7 @@ function renderRoutes(){
       driver_id:"",
       charter_vendor_id:"",
       charter_vehicle_id:"",
+      charter_cost_override_enabled:false,
       charter_cost_override_eur:0,
       sales_price_eur:0,
       tour_ids:[],
@@ -1409,9 +2000,22 @@ function renderRoutes(){
           <select id="r_vehicle"></select>
         </label>
 
-        <label>Rota Satış (€) (override)<br/><input id="r_sales" type="number" step="0.01" value="${esc(r.sales_price_eur)}"></label>
+        <label>Rota Satış (override)<br/><input id="r_sales" type="number" step="0.01" value="${esc(r.sales_price_eur)}"></label>
 
-        <label id="wrap_override">Charter Override Maliyet (€)<br/><input id="r_override" type="number" step="0.01" value="${esc(r.charter_cost_override_eur||0)}"></label>
+        <label id="wrap_override_on">Override Kullan<br/>
+          <select id="r_override_on">
+            <option value="false" ${asBool(r.charter_cost_override_enabled) ? "" : "selected"}>Hayır</option>
+            <option value="true" ${asBool(r.charter_cost_override_enabled) ? "selected" : ""}>Evet</option>
+          </select>
+        </label>
+
+        <label id="wrap_computed">Hesaplanan Charter Maliyeti<br/>
+          <input id="r_computed" type="number" step="0.01" value="0" disabled>
+        </label>
+
+        <label id="wrap_override">Charter Override Maliyet<br/>
+          <input id="r_override" type="number" step="0.01" value="${esc(r.charter_cost_override_eur||0)}">
+        </label>
       </div>
 
       <div style="margin-top:10px;">
@@ -1425,7 +2029,15 @@ function renderRoutes(){
             <table>
               <thead>
                 <tr>
-                  <th>Seç</th><th>TURID</th><th class="right">Gelir (€)</th><th class="right">KM</th><th>Başlangıç</th><th>Bitiş</th>
+                  <th>Seç</th>
+                  <th>TURID</th>
+                  <th>Müşteri</th>
+                  <th>Tur Başlangıç Adresi</th>
+                  <th>Tur Bitiş Adresi</th>
+                  <th>Başlangıç Saati</th>
+                  <th>Bitiş Saati</th>
+                  <th class="right">Tur Fiyatı</th>
+                  <th class="right">KM</th>
                 </tr>
               </thead>
               <tbody id="r_tourBody"></tbody>
@@ -1437,7 +2049,7 @@ function renderRoutes(){
           <h4 style="margin:0 0 8px;">Özet</h4>
           <div class="card" style="box-shadow:none;">
             <div class="row">
-              <span class="pill">Tur Gelir: <b id="sum_rev">€0.00</b></span>
+              <span class="pill">Tur Gelir: <b id="sum_rev">${money(0)}</b></span>
               <span class="pill">KM: <b id="sum_km">0.00</b></span>
               <span class="pill">Süre: <b id="sum_h">0.00h</b></span>
             </div>
@@ -1448,9 +2060,9 @@ function renderRoutes(){
             </div>
             <hr/>
             <div class="row">
-              <span class="pill">Gelir Kullanılan: <b id="sum_rev_used">€0.00</b></span>
-              <span class="pill">Maliyet: <b id="sum_cost">€0.00</b></span>
-              <span class="pill">Kâr: <b id="sum_profit">€0.00</b></span>
+              <span class="pill">Gelir Kullanılan: <b id="sum_rev_used">${money(0)}</b></span>
+              <span class="pill">Maliyet: <b id="sum_cost">${money(0)}</b></span>
+              <span class="pill">Kâr: <b id="sum_profit">${money(0)}</b></span>
             </div>
             <div id="kmWarn" class="warn small" style="margin-top:10px; display:none;">
               Charter KM modeli seçildi; fakat turlarda KM = 0 görünüyor. KM girmezseniz maliyet 0 hesaplanır.
@@ -1467,13 +2079,14 @@ function renderRoutes(){
 
     const modeSel = slot.querySelector("#r_mode");
     const driverSel = slot.querySelector("#r_driver");
-
     const vendorSel = slot.querySelector("#r_vendor");
     const vehicleSel = slot.querySelector("#r_vehicle");
 
     const wrapDriver = slot.querySelector("#wrap_driver");
     const wrapVendor = slot.querySelector("#wrap_vendor");
     const wrapVehicle = slot.querySelector("#wrap_vehicle");
+    const wrapOverrideOn = slot.querySelector("#wrap_override_on");
+    const wrapComputed = slot.querySelector("#wrap_computed");
     const wrapOverride = slot.querySelector("#wrap_override");
 
     const tourBody = slot.querySelector("#r_tourBody");
@@ -1486,10 +2099,13 @@ function renderRoutes(){
         tr.innerHTML = `
           <td class="right"><input type="checkbox" data-tour="${esc(t.tour_id)}" ${checked}></td>
           <td class="kbd">${esc(t.tour_id)}</td>
-          <td class="right">€${fmt(num(t.tour_price_eur))}</td>
-          <td class="right">${fmt(num(t.tour_km))}</td>
+          <td>${esc(t.customer||"")}</td>
+          <td>${esc(t.start_address||"")}</td>
+          <td>${esc(t.end_address||"")}</td>
           <td class="kbd">${esc(t.start_dt||"")}</td>
           <td class="kbd">${esc(t.end_dt||"")}</td>
+          <td class="right">${money(num(t.tour_price_eur))}</td>
+          <td class="right">${fmt(num(t.tour_km))}</td>
         `;
         tourBody.appendChild(tr);
       }
@@ -1500,7 +2116,9 @@ function renderRoutes(){
       wrapDriver.style.display = (m==="TLN" || m==="ZZP") ? "" : "none";
       wrapVendor.style.display = (m==="CHARTER") ? "" : "none";
       wrapVehicle.style.display = (m==="CHARTER") ? "" : "none";
-      wrapOverride.style.display = (m==="CHARTER") ? "" : "none";
+      wrapOverrideOn.style.display = (m==="CHARTER") ? "" : "none";
+      wrapComputed.style.display = (m==="CHARTER") ? "" : "none";
+      // wrapOverride görünürlüğü recomputeSummary içinde yönetilecek
 
       if (m==="TLN" || m==="ZZP"){
         driverSel.innerHTML = buildDriverOptionsByMode(r.driver_id, m);
@@ -1518,20 +2136,29 @@ function renderRoutes(){
         driver_id: driverSel.value,
         charter_vendor_id: vendorSel?.value || r.charter_vendor_id,
         charter_vehicle_id: vehicleSel?.value || r.charter_vehicle_id,
+        charter_cost_override_enabled: slot.querySelector("#r_override_on")?.value === "true",
         charter_cost_override_eur: num(slot.querySelector("#r_override")?.value),
         sales_price_eur: num(slot.querySelector("#r_sales")?.value),
       };
       const n = calcRouteNumbers(tmp);
 
-      slot.querySelector("#sum_rev").textContent = "€" + fmt(n.tour_revenue_eur);
-      slot.querySelector("#sum_rev_used").textContent = "€" + fmt(n.revenue_used_eur);
+      slot.querySelector("#sum_rev").textContent = money(n.tour_revenue_eur);
+      slot.querySelector("#sum_rev_used").textContent = money(n.revenue_used_eur);
       slot.querySelector("#sum_km").textContent = fmt(n.total_km);
       slot.querySelector("#sum_h").textContent = n.total_hours.toFixed(2) + "h";
       slot.querySelector("#sum_n").textContent = n.night_hours.toFixed(2) + "h";
       slot.querySelector("#sum_sat").textContent = n.sat_hours.toFixed(2) + "h";
       slot.querySelector("#sum_sun").textContent = n.sun_hours.toFixed(2) + "h";
-      slot.querySelector("#sum_cost").textContent = "€" + fmt(n.cost_used_eur);
-      slot.querySelector("#sum_profit").textContent = "€" + fmt(n.profit_eur);
+      slot.querySelector("#sum_cost").textContent = money(n.cost_used_eur);
+      slot.querySelector("#sum_profit").textContent = money(n.profit_eur);
+
+      // computed alanını doldur
+      const computedInput = slot.querySelector("#r_computed");
+      if (computedInput) computedInput.value = fmt(n.charter_cost_computed_eur);
+
+      // override input görünürlüğü
+      const overrideOn = slot.querySelector("#r_override_on")?.value === "true";
+      wrapOverride.style.display = (modeSel.value==="CHARTER" && overrideOn) ? "" : "none";
 
       const warn = slot.querySelector("#kmWarn");
       if (modeSel.value==="CHARTER"){
@@ -1551,19 +2178,17 @@ function renderRoutes(){
     modeSel.addEventListener("change", () => { refreshModeUI(); recomputeSummary(); });
     driverSel.addEventListener("change", () => { r.driver_id = driverSel.value; recomputeSummary(); });
 
-    if (vendorSel){
-      vendorSel.addEventListener("change", () => {
-        r.charter_vendor_id = vendorSel.value;
-        vehicleSel.innerHTML = buildCharterVehicleOptions("", vendorSel.value);
-        r.charter_vehicle_id = "";
-        recomputeSummary();
-      });
-    }
-    if (vehicleSel){
-      vehicleSel.addEventListener("change", () => { r.charter_vehicle_id = vehicleSel.value; recomputeSummary(); });
-    }
+    vendorSel.addEventListener("change", () => {
+      r.charter_vendor_id = vendorSel.value;
+      vehicleSel.innerHTML = buildCharterVehicleOptions("", vendorSel.value);
+      r.charter_vehicle_id = "";
+      recomputeSummary();
+    });
+
+    vehicleSel.addEventListener("change", () => { r.charter_vehicle_id = vehicleSel.value; recomputeSummary(); });
 
     slot.querySelector("#r_sales").addEventListener("input", recomputeSummary);
+    slot.querySelector("#r_override_on").addEventListener("change", recomputeSummary);
     slot.querySelector("#r_override").addEventListener("input", recomputeSummary);
 
     tourBody.addEventListener("change", (e) => {
@@ -1593,13 +2218,13 @@ function renderRoutes(){
         driver_id: (driver_mode==="TLN" || driver_mode==="ZZP") ? driverSel.value : "",
         charter_vendor_id: (driver_mode==="CHARTER") ? vendorSel.value : "",
         charter_vehicle_id: (driver_mode==="CHARTER") ? vehicleSel.value : "",
+        charter_cost_override_enabled: (driver_mode==="CHARTER") ? (slot.querySelector("#r_override_on").value === "true") : false,
         charter_cost_override_eur: (driver_mode==="CHARTER") ? num(slot.querySelector("#r_override").value) : 0,
         sales_price_eur: num(slot.querySelector("#r_sales").value),
         tour_ids: r.tour_ids || [],
         note: slot.querySelector("#r_note").value.trim()
       };
 
-      // Charter ise araç seçimini zorunlu yapmak isterseniz burada enforce edilir.
       if (driver_mode==="CHARTER" && !rec.charter_vehicle_id){
         const ok = confirm("Charter seçtiniz ama araç seçmediniz. Yine de kaydedilsin mi?");
         if (!ok) return;
@@ -1642,12 +2267,19 @@ function renderRoutes(){
         .map(t => `
           <tr>
             <td class="kbd">${esc(t.tour_id)}</td>
-            <td class="right">€${fmt(num(t.tour_price_eur))}</td>
-            <td class="right">${fmt(num(t.tour_km))}</td>
+            <td>${esc(t.customer||"")}</td>
+            <td>${esc(t.start_address||"")}</td>
+            <td>${esc(t.end_address||"")}</td>
             <td class="kbd">${esc(t.start_dt||"")}</td>
             <td class="kbd">${esc(t.end_dt||"")}</td>
+            <td class="right">${money(num(t.tour_price_eur))}</td>
+            <td class="right">${fmt(num(t.tour_km))}</td>
+            <td>${esc(t.vehicle_type||"")}</td>
           </tr>
         `).join("");
+
+      const pCls = profitClass(num(n.profit_eur));
+      const override = (r.driver_mode==="CHARTER") ? (asBool(r.charter_cost_override_enabled) ? "Evet" : "Hayır") : "-";
 
       openModal("Rota Görüntüle", `
         <div class="grid2">
@@ -1656,10 +2288,12 @@ function renderRoutes(){
               <tr><th>Rota No</th><td class="kbd">${esc(r.route_no)}</td></tr>
               <tr><th>Sürücü Tipi</th><td>${esc(routeModeLabel(r.driver_mode))}</td></tr>
               <tr><th>Atama</th><td>${esc(assignment)}</td></tr>
-              <tr><th>Tur Geliri</th><td>€${fmt(n.tour_revenue_eur)}</td></tr>
-              <tr><th>Gelir Kullanılan</th><td>€${fmt(n.revenue_used_eur)}</td></tr>
-              <tr><th>Maliyet</th><td>€${fmt(n.cost_used_eur)}</td></tr>
-              <tr><th>Kâr</th><td>€${fmt(n.profit_eur)}</td></tr>
+              <tr><th>Tur Geliri</th><td>${money(n.tour_revenue_eur)}</td></tr>
+              <tr><th>Gelir Kullanılan</th><td>${money(n.revenue_used_eur)}</td></tr>
+              <tr><th>Maliyet</th><td>${money(n.cost_used_eur)}</td></tr>
+              <tr><th>Kâr</th><td><span class="pill ${pCls}">${money(n.profit_eur)}</span></td></tr>
+              <tr><th>Marj</th><td>${num(n.margin_pct).toFixed(2)}%</td></tr>
+              <tr><th>Override?</th><td>${override}</td></tr>
               <tr><th>Not</th><td>${esc(r.note||"")}</td></tr>
             </table>
           </div>
@@ -1670,6 +2304,8 @@ function renderRoutes(){
               <tr><th>Gece</th><td>${n.night_hours.toFixed(2)}h</td></tr>
               <tr><th>Cumartesi</th><td>${n.sat_hours.toFixed(2)}h</td></tr>
               <tr><th>Pazar</th><td>${n.sun_hours.toFixed(2)}h</td></tr>
+              <tr><th>Charter Hesaplanan</th><td>${money(n.charter_cost_computed_eur)}</td></tr>
+              <tr><th>Charter Kullanılan</th><td>${money(n.charter_cost_eur)}</td></tr>
             </table>
           </div>
         </div>
@@ -1677,9 +2313,21 @@ function renderRoutes(){
         <h4 style="margin:0 0 8px;">Rota İçindeki Turlar</h4>
         <div class="scroller" style="max-height:320px;">
           <table>
-            <thead><tr><th>TURID</th><th class="right">Gelir (€)</th><th class="right">KM</th><th>Başlangıç</th><th>Bitiş</th></tr></thead>
+            <thead>
+              <tr>
+                <th>TURID</th>
+                <th>Müşteri</th>
+                <th>Tur Başlangıç Adresi</th>
+                <th>Tur Bitiş Adresi</th>
+                <th>Başlangıç Saati</th>
+                <th>Bitiş Saati</th>
+                <th class="right">Tur Fiyatı</th>
+                <th class="right">KM</th>
+                <th>Araç Tipi</th>
+              </tr>
+            </thead>
             <tbody>
-              ${tourLines || `<tr><td colspan="5" class="muted">Tur yok</td></tr>`}
+              ${tourLines || `<tr><td colspan="9" class="muted">Tur yok</td></tr>`}
             </tbody>
           </table>
         </div>
@@ -1704,7 +2352,131 @@ function renderRoutes(){
 }
 
 /* =========================
-   Backup / Reset
+   Settings UI
+   ========================= */
+function renderSettings(){
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const s = mergeSettings(state.settings);
+
+  card.innerHTML = `
+    <div class="row">
+      <h3 style="margin:0;">Ayarlar</h3>
+      <div style="flex:1"></div>
+      <span class="pill">Bu ayarlar LocalStorage’da saklanır</span>
+    </div>
+
+    <div class="grid2" style="margin-top:12px;">
+      <div class="card" style="box-shadow:none;">
+        <h4 style="margin:0 0 8px;">Genel</h4>
+        <div class="row">
+          <label>Para Birimi Sembolü<br/><input id="set_currency" type="text" value="${esc(s.currency_symbol)}" style="width:120px;"></label>
+
+          <label>Dashboard Varsayılan Filtre<br/>
+            <select id="set_db_range">
+              <option value="ALL" ${s.dashboard_default_range==="ALL"?"selected":""}>Tümü</option>
+              <option value="LAST_7" ${s.dashboard_default_range==="LAST_7"?"selected":""}>Son 7 Gün</option>
+              <option value="THIS_MONTH" ${s.dashboard_default_range==="THIS_MONTH"?"selected":""}>Bu Ay</option>
+            </select>
+          </label>
+
+          <label>Amber Eşik (Kâr < eşik)<br/>
+            <input id="set_warn" type="number" step="0.01" value="${esc(s.profit_warn_threshold)}" style="width:160px;">
+          </label>
+        </div>
+      </div>
+
+      <div class="card" style="box-shadow:none;">
+        <h4 style="margin:0 0 8px;">Gece Aralığı</h4>
+        <div class="small">Gece saatleri (cross-midnight destekli). Örn 21:00–04:00</div>
+        <div class="row" style="margin-top:10px;">
+          <label>Gece Başlangıç<br/><input id="set_night_start" type="time" value="${esc(s.night_start)}"></label>
+          <label>Gece Bitiş<br/><input id="set_night_end" type="time" value="${esc(s.night_end)}"></label>
+        </div>
+        <div class="warn small" style="margin-top:10px;">
+          Not: Başlangıç = Bitiş olursa gece hesabı 0 kabul edilir.
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:12px;">
+      <button class="primary" id="set_save">Kaydet</button>
+      <button id="set_defaults">Varsayılanlara Dön</button>
+      <div style="flex:1"></div>
+      <button id="set_export">Yedek (JSON) Dışa Aktar</button>
+      <button id="set_import">Yedek (JSON) İçe Aktar</button>
+      <button class="danger" id="set_reset">Tüm Veriyi Sıfırla</button>
+    </div>
+  `;
+
+  function applySettings(newSettings){
+    state.settings = mergeSettings(newSettings);
+    saveState();
+    render();
+  }
+
+  card.querySelector("#set_save").addEventListener("click", () => {
+    const ns = {
+      currency_symbol: card.querySelector("#set_currency").value.trim() || "€",
+      dashboard_default_range: card.querySelector("#set_db_range").value,
+      profit_warn_threshold: num(card.querySelector("#set_warn").value),
+      night_start: card.querySelector("#set_night_start").value || "21:00",
+      night_end: card.querySelector("#set_night_end").value || "04:00"
+    };
+    applySettings(ns);
+    alert("Ayarlar kaydedildi.");
+  });
+
+  card.querySelector("#set_defaults").addEventListener("click", () => {
+    if (!confirm("Varsayılan ayarlara dönülsün mü?")) return;
+    applySettings(defaultSettings());
+  });
+
+  // backup actions in settings
+  card.querySelector("#set_export").addEventListener("click", () => {
+    downloadText(JSON.stringify(state, null, 2), "nedline_backup.json");
+  });
+
+  card.querySelector("#set_import").addEventListener("click", () => {
+    const input = document.getElementById("fileInput");
+    input.value = "";
+    input.onchange = async () => {
+      const f = input.files[0];
+      if (!f) return;
+      const txt = await f.text();
+      try{
+        const obj = JSON.parse(txt);
+        if (!obj.drivers || !obj.contracts || !obj.tours) throw new Error("Format geçersiz (drivers/contracts/tours yok).");
+        if (!obj.routes) obj.routes = [];
+        if (!obj.charters) obj.charters = [];
+        if (!obj.charter_vehicles) obj.charter_vehicles = [];
+        if (!obj.settings) obj.settings = defaultSettings();
+        obj.settings = mergeSettings(obj.settings);
+
+        state = obj;
+        saveState();
+        alert("Yedek içe aktarıldı.");
+        render();
+      } catch(e){
+        alert("Yedek içe aktarılamadı: " + e.message);
+      }
+    };
+    input.click();
+  });
+
+  card.querySelector("#set_reset").addEventListener("click", () => {
+    if (!confirm("Tüm veriler silinecek. Emin misiniz?")) return;
+    localStorage.removeItem(STORAGE_KEY);
+    loadState();
+    render();
+  });
+
+  return card;
+}
+
+/* =========================
+   Backup / Reset (topbar)
    ========================= */
 document.getElementById("btnExport").addEventListener("click", () => {
   downloadText(JSON.stringify(state, null, 2), "nedline_backup.json");
@@ -1723,6 +2495,9 @@ document.getElementById("btnImport").addEventListener("click", () => {
       if (!obj.routes) obj.routes = [];
       if (!obj.charters) obj.charters = [];
       if (!obj.charter_vehicles) obj.charter_vehicles = [];
+      if (!obj.settings) obj.settings = defaultSettings();
+      obj.settings = mergeSettings(obj.settings);
+
       state = obj;
       saveState();
       alert("Yedek içe aktarıldı.");
