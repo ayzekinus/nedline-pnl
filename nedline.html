@@ -690,9 +690,8 @@ function getNightPct(contract){
   return num(state.settings.nightPct);
 }
 
-/** ---------- ComputeAll (Bundle-aware) ---------- */
 function computeAll(){
-  const drivers = mapBy("drivers","driver_id");
+  const driversMap = mapBy("drivers","driver_id");
   const routes = mapBy("routes","route_code");
   const vehicles = mapBy("vehicles","vehicle_id");
   const tours = list("tours").slice();
@@ -722,7 +721,7 @@ function computeAll(){
 
   for (const t of tours){
     const tid = String(t.tour_id);
-    const driver = drivers.get(String(t.driver_id)) || null;
+    const driver = driversMap.get(String(t.driver_id)) || null;
     const contract = getContractForDriver(driver);
     const vehicle = vehicles.get(String(t.vehicle_id)) || null;
 
@@ -798,7 +797,6 @@ function computeAll(){
       }
 
       // If bundle leg: charter has own drivers; costs come from bundle allocation
-      // includes flags can zero out fuel/adr/other
       if (isBundleLeg){
         driverCost = 0;
         if (asBool(bundle.includes_fuel)) fuel = 0;
@@ -827,7 +825,6 @@ function computeAll(){
         other_cost: other,
         driver_cost: driverCost,
 
-        // bundle info
         bundle_code: isBundleLeg ? bundle.bundle_code : "",
         bundle_vendor_code: isBundleLeg ? bundle.vendor_code : "",
         bundle_package_code: isBundleLeg ? (bundle.package_code || "") : "",
@@ -844,7 +841,7 @@ function computeAll(){
     }
   }
 
-  // Bundle allocation (multiple bundles per vendor supported implicitly)
+  // Bundle allocation
   const legsByBundle = new Map();
   for (const x of computedLegs){
     if (x.bundle_code){
@@ -860,7 +857,6 @@ function computeAll(){
     if (fee <= 0) continue;
     const method = String(b.allocation_method || "KM").toUpperCase().trim();
 
-    // denom
     let denom = 0;
     if (method === "HOURS") denom = arr.reduce((s,x)=>s+num(x.hours),0);
     else if (method === "REVENUE") denom = arr.reduce((s,x)=>s+num(x.revenue),0);
@@ -875,7 +871,7 @@ function computeAll(){
         x.weight_used = w;
         denom += w;
       }
-    } else denom = arr.reduce((s,x)=>s+num(x.km),0); // KM
+    } else denom = arr.reduce((s,x)=>s+num(x.km),0);
 
     if (denom <= 0) denom = 1e-9;
 
@@ -888,12 +884,11 @@ function computeAll(){
 
       const alloc = fee * (w / denom);
       x.bundle_alloc_eur = alloc;
-      // bundle maliyetini driver_cost kolonunda taşıyoruz (rapor toplamı için)
       x.driver_cost += alloc;
     }
   }
 
-  // TLN overtime allocation (exclude bundle legs)
+  // TLN overtime (exclude bundle legs)
   const tlnLegs = computedLegs.filter(x =>
     x.provider_type === "EMPLOYEE_TLN" && !x.bundle_code
   );
@@ -905,14 +900,14 @@ function computeAll(){
     byDriverWeek.get(k).push(l);
   }
 
-  const drivers = mapBy("drivers","driver_id");
   for (const [k, arr] of byDriverWeek.entries()){
     arr.sort((a,b)=>
       (a.date||"").localeCompare(b.date||"") ||
       (a.start_dt||"").localeCompare(b.start_dt||"") ||
       (a.sequence_no - b.sequence_no)
     );
-    const driver = drivers.get(String(arr[0]?.driver_id)) || null;
+
+    const driver = driversMap.get(String(arr[0]?.driver_id)) || null;
     const contract = getContractForDriver(driver);
     const threshold = (contract && contract.tln_overtime_after_hours !== undefined) ? num(contract.tln_overtime_after_hours) : 40;
     const otPct = (contract && contract.tln_overtime_pct !== undefined) ? num(contract.tln_overtime_pct) : 30;
@@ -938,7 +933,6 @@ function computeAll(){
 
   // overhead + profit
   const overheadPct = num(state.settings.overheadPct);
-
   for (const leg of computedLegs){
     const direct = leg.driver_cost + leg.fuel_cost + leg.adr_cost + leg.other_cost;
     const overhead = overheadPct > 0 ? direct * overheadPct / 100 : 0;
@@ -1011,7 +1005,7 @@ function computeAll(){
   const bundleSummary = Array.from(bundleAgg.values()).map(x => ({
     ...x,
     margin_pct: x.revenue>0 ? (x.profit/x.revenue*100) : 0,
-    alloc_gap: (x.fixed_fee_eur - x.bundle_alloc_total) // ideally ~0
+    alloc_gap: (x.fixed_fee_eur - x.bundle_alloc_total)
   })).sort((a,b)=>a.profit-b.profit);
 
   computedLegs.sort((a,b)=>
